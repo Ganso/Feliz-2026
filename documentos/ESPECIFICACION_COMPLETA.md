@@ -16,7 +16,7 @@
 8. [Estructura de Archivos](#estructura-de-archivos)
 9. [Assets Gráficos (GFX)](#assets-gráficos)
 10. [Assets de Audio (SFX/Música)](#assets-de-audio)
-11. [Requisi tos de Memoria](#requisitos-de-memoria)
+11. [Requisitos de Memoria](#requisitos-de-memoria)
 12. [Máquina de Estados](#máquina-de-estados)
 
 ---
@@ -621,7 +621,7 @@ FASE 3: Campanadas (Iglesia)
 ├─ Objetivo: 12 campanillas
 ├─ Dificultad: Media-Alta
 ├─ Sistema: Disparos de confeti
-└─ Archivo: minigame_bells_FINAL.c
+└─ Archivo: minigame_bells.c
 ```
 
 ### Especificaciones (Resumen)
@@ -893,7 +893,7 @@ christmas-game-2026/
 │
 ├─ src/
 │  ├─ main.c                      ✅ Orquestador principal
-│  ├─ gamecore.c                  ✅ Funciones reutilizables
+│  ├─ game_core.c                 ✅ Funciones reutilizables
 │  ├─ geesebumps.c                ✅ Intro logo
 │  ├─ minigame_bells.c            ✅ FASE 3 (COMPLETA)
 │  ├─ minigame_pickup.c           📋 FASE 1 (TODO)
@@ -907,7 +907,7 @@ christmas-game-2026/
 │     └─ resources.res            🔄 Será generado
 │
 ├─ inc/
-│  ├─ gamecore.h                  ✅ Headers core
+│  ├─ game_core.h                 ✅ Headers core
 │  ├─ geesebumps.h                ✅ Headers intro
 │  ├─ minigame_bells.h            ✅ Headers Fase 3
 │  ├─ minigame_pickup.h           📋 Headers Fase 1
@@ -915,70 +915,13 @@ christmas-game-2026/
 │  └─ minigame_celebration.h      📋 Headers Fase 4
 │
 ├─ res/
-│  ├─ Sprites/
-│  │  ├─ GFX/
-│  │  │  ├─ Campana.png           ✅ 32×32
-│  │  │  ├─ Campanabn.png         ✅ 32×32 (BN)
-│  │  │  ├─ Canon.png             ✅ 80×64, 2 frames
-│  │  │  ├─ Bomba.png             ✅ 32×32
-│  │  │  ├─ BolaConfeti.png       ✅ 8×8
-│  │  │  ├─ Regalo.png            📋 32×32 (Fase 1)
-│  │  │  ├─ CanonPolo.png         📋 80×64, 2 frames
-│  │  │  ├─ RedConfeti.png        📋 8×8
-│  │  │  ├─ Chimenea.png          📋 20×80, 2 frames
-│  │  │  ├─ CanonTejado.png       📋 64×96, 2 frames
-│  │  │  ├─ PersonajeFilesta.png  📋 256×64, 4 frames
-│  │  │  ├─ ÁrbolFiesta.png       📋 80×240, 2 frames
-│  │  │  ├─ Globo.png             📋 72×32, 3 vars
-│  │  │  ├─ Confeti.png           📋 12×12
-│  │  │  └─ ... (letras FELIZ si necesarias)
-│  │  └─ resources.res (SPRITE directives)
-│  │
-│  ├─ Backgrounds/
-│  │  ├─ FondoIglesia.png         ✅ 512×256
-│  │  ├─ FondoNieve.png           ✅ 512×256
-│  │  ├─ FondoFiesta.png          ✅ 512×256
-│  │  ├─ FondoPolo.png            📋 512×256
-│  │  ├─ FondoTejados.png         📋 512×256
-│  │  ├─ Nubes.png                📋 256×256
-│  │  ├─ CoposFondo.png           📋 256×256
-│  │  └─ LucesParpadeo.png        📋 256×256
-│  │
-│  ├─ Palettes/
-│  │  ├─ Fondo.pal                ✅ PAL_COMMON
-│  │  ├─ Sprites.pal              ✅ PAL_PLAYER
-│  │  ├─ Efectos.pal              ✅ PAL_EFFECT
-│  │  ├─ FondoPolo.pal            📋 PAL_COMMON
-│  │  ├─ FondoTejados.pal         📋 PAL_COMMON
-│  │  └─ FondoFiesta.pal          📋 PAL_COMMON
-│  │
-│  ├─ Audio/
-│  │  ├─ Sounds/
-│  │  │  ├─ sndcampana.wav        ✅ 25KB
-│  │  │  ├─ sndbomba.wav          ✅ 10KB
-│  │  │  ├─ sndcanon.wav          ✅ 5KB
-│  │  │  ├─ sndletraok.wav        ✅ 2KB
-│  │  │  ├─ sndletrano.wav        ✅ 2.5KB
-│  │  │  ├─ sndvictoria.wav       ✅ 107KB
-│  │  │  ├─ sndaplausos.wav       ✅ 105KB
-│  │  │  ├─ sndregalo_recogido.wav 📋 ~1.6KB
-│  │  │  ├─ snd_disparo_red.wav   📋 ~0.8KB
-│  │  │  ├─ snd_obstáculo.wav     📋 ~1.2KB
-│  │  │  ├─ snd_entrega.wav       📋 ~2.4KB
-│  │  │  ├─ snd_chimenea_activa.wav 📋 ~1.6KB
-│  │  │  ├─ snd_confeti.wav       📋 ~0.8KB
-│  │  │  ├─ snd_choque_confeti.wav 📋 ~0.8KB
-│  │  │  └─ resources.res (WAV directives)
-│  │  │
-│  │  └─ Music/
-│  │     ├─ musica.vgm            ✅ Fase 3 (XGM2)
-│  │     ├─ musica_polo.vgm       📋 Fase 1 (XGM2)
-│  │     ├─ musica_tejados.vgm    📋 Fase 2 (XGM2)
-│  │     ├─ musica_celebracion.vgm 📋 Fase 4 (XGM2)
-│  │     ├─ musica_geesebumps.vgm ✅ Intro (XGM2)
-│  │     └─ resources.res (XGM2 directives)
-│  │
-│  └─ resources.res              🔄 Será actualizado
+│  ├─ sprites/               (Campana*, Canon, Bomba, Confeti; TODO resto fases)
+│  ├─ bg/                    (Fondo.png, FondoNieve.png; TODO fondos Polo/Tejados/Fiesta)
+│  ├─ sfx/                   (snd_campana, snd_bomba, snd_canon; TODO más SFX)
+│  ├─ music/                 (musica.vgm fase 3; TODO músicas fases 1/2/4)
+│  ├─ Geesebumps/            (paletas + logos + Goosebumps_intro.vgm)
+│  ├─ resources.h            (generado por rescomp)
+│  └─ resources.res          (directivas SGDK)
 │
 ├─ build/
 │  └─ rom.bin                    (Salida final)
@@ -1393,10 +1336,10 @@ INPUT HANDLER (gameCore_readInput):
 ```
 DISTRIBUCIÓN IMPLEMENTACIÓN:
 
-Fase 3 (Campanadas):     ✅ 100% COMPLETADA   (minigame_bells_FINAL.c)
+Fase 3 (Campanadas):     ✅ 100% COMPLETADA   (minigame_bells.c)
 Fases 1, 2, 4:           📋 Placeholders      (minigame_pickup/delivery/celebration.c)
 
-Game Core:               ✅ 75% Reutilizable  (gamecore.c)
+Game Core:               ✅ 75% Reutilizable  (game_core.c)
 Main Orchestrator:       ✅ Listo             (main.c)
 Intro Logo:              ✅ Listo             (geesebumps.c)
 

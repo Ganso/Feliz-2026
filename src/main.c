@@ -26,7 +26,6 @@ enum {
 
 /* Variables globales */
 static u8 currentPhase = PHASE_INTRO;
-static u32 totalScore = 0;
 
 int main() {
     /* Inicialización */

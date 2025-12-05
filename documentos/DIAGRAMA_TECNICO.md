@@ -13,7 +13,7 @@
                  │                    │                    │
                  ▼                    ▼                    ▼
           ┌─────────────────────────────────────────────────────┐
-          │         SISTEMA DE CORE COMPARTIDO (gamecore.c)    │
+          │         SISTEMA DE CORE COMPARTIDO (game_core.c)   │
           ├─────────────────────────────────────────────────────┤
           │ • Funciones de colisión AABB                        │
           │ • Gestión de timers                                │
@@ -408,7 +408,7 @@ DOCUMENTACIÓN:
 
 CÓDIGO:
 ✅ main.c - Orquestador listo
-✅ gamecore.c - Core functions 75% reutilizable
+✅ game_core.c - Core functions 75% reutilizable
 ✅ geesebumps.c - Intro lista
 ✅ minigame_bells.c - FASE 3 compilable ✅
 ✅ minigame_pickup.c - Estructura lista

@@ -28,7 +28,7 @@ FASE 2: Entrega (Tejados)
 
 FASE 3: Campanadas (Iglesia)
 ├─ Estado: ✅ 100% IMPLEMENTADA
-├─ Código: minigame_bells_FINAL.c (COMPILABLE)
+├─ Código: minigame_bells.c (COMPILABLE)
 ├─ Assets: Todos presentes (5 sprites, 2 fondos, 3 SFX + música)
 ├─ Funcionamiento: Probado en hardware/emulador
 └─ Compilación: make clean && make rebuild && make run
@@ -41,10 +41,9 @@ FASE 4: Celebración (Fiesta)
 └─ Estimado: 3-4 horas de desarrollo
 
 CORE SYSTEMS:
-├─ gamecore.c: ✅ 75% reutilizable (fundaciones solidas)
+├─ game_core.c: ✅ 75% reutilizable (fundaciones solidas)
 ├─ main.c: ✅ Listo (orquestador de fases)
-├─ geesebumps.c: ✅ Intro logo (3-5 segundos)
-└─ globals.h: ✅ Includes centralizados
+└─ geesebumps.c: ✅ Intro logo (3-5 segundos)
 
 TOTAL ESTIMADO: 16-23 horas de desarrollo completo (todas fases)
 ```
@@ -58,7 +57,7 @@ christmas-game-2026/
 │
 ├─ 📂 src/
 │  ├─ ✅ main.c (orquestador principal)
-│  ├─ ✅ gamecore.c (funciones reutilizables)
+│  ├─ ✅ game_core.c (funciones reutilizables)
 │  ├─ ✅ geesebumps.c (intro logo)
 │  ├─ ✅ minigame_bells.c (FASE 3 - COMPLETA)
 │  ├─ 📋 minigame_pickup.c (FASE 1 - TODO)
@@ -69,7 +68,7 @@ christmas-game-2026/
 │     └─ ✅ sega.s
 │
 ├─ 📂 inc/
-│  ├─ ✅ gamecore.h
+│  ├─ ✅ game_core.h
 │  ├─ ✅ geesebumps.h
 │  ├─ ✅ minigame_bells.h
 │  ├─ 📋 minigame_pickup.h (TODO)
@@ -77,79 +76,12 @@ christmas-game-2026/
 │  └─ 📋 minigame_celebration.h (TODO)
 │
 ├─ 📂 res/
-│  ├─ 📂 Sprites/GFX/
-│  │  ├─ ✅ Campana.png (32×32)
-│  │  ├─ ✅ Campanabn.png (32×32)
-│  │  ├─ ✅ Canon.png (80×64)
-│  │  ├─ ✅ Bomba.png (32×32)
-│  │  ├─ ✅ BolaConfeti.png (8×8)
-│  │  │
-│  │  ├─ 📋 Regalo.png (32×32) - Fase 1
-│  │  ├─ 📋 CanonPolo.png (80×64) - Fase 1
-│  │  ├─ 📋 RedConfeti.png (8×8) - Fase 1
-│  │  ├─ 📋 CopoGrande.png (64×64) - Fase 1
-│  │  │
-│  │  ├─ 📋 Regalos_Pequeño.png (24×24) - Fase 2
-│  │  ├─ 📋 Chimenea.png (20×160) - Fase 2
-│  │  ├─ 📋 CanonTejado.png (128×96) - Fase 2
-│  │  ├─ 📋 Nube.png (64×32) - Fase 2
-│  │  │
-│  │  ├─ 📋 Confeti.png (12×12) - Fase 4
-│  │  ├─ 📋 PersonajeFilesta.png (256×64) - Fase 4
-│  │  ├─ 📋 ÁrbolFiesta.png (80×240) - Fase 4
-│  │  └─ 📋 Globo.png (72×32) - Fase 4
-│  │
-│  ├─ 📂 Backgrounds/
-│  │  ├─ ✅ FondoIglesia.png (512×256) - Fase 3
-│  │  ├─ ✅ FondoNieve.png (512×256) - Fase 3
-│  │  ├─ ✅ FondoFiesta.png (512×256) - Fase 3/4 (compartido)
-│  │  │
-│  │  ├─ 📋 FondoPolo.png (512×256) - Fase 1
-│  │  ├─ 📋 CoposFondo.png (256×256) - Fase 1
-│  │  │
-│  │  ├─ 📋 FondoTejados.png (512×256) - Fase 2
-│  │  ├─ 📋 Nubes.png (256×256) - Fase 2
-│  │  └─ 📋 LucesParpadeo.png (256×256) - Fase 4
-│  │
-│  ├─ 📂 Palettes/
-│  │  ├─ ✅ Fondo.pal (Fase 3)
-│  │  ├─ ✅ Sprites.pal (Global)
-│  │  ├─ ✅ Efectos.pal (Global)
-│  │  │
-│  │  ├─ 📋 FondoPolo.pal - Fase 1
-│  │  ├─ 📋 FondoTejados.pal - Fase 2
-│  │  └─ 📋 FondoFiesta.pal - Fase 4
-│  │
-│  ├─ 📂 Audio/Sounds/
-│  │  ├─ ✅ sndcampana.wav (25KB)
-│  │  ├─ ✅ sndbomba.wav (10KB)
-│  │  ├─ ✅ sndcanon.wav (5KB)
-│  │  ├─ ✅ sndletraok.wav (2KB)
-│  │  ├─ ✅ sndletrano.wav (2.5KB)
-│  │  ├─ ✅ sndvictoria.wav (107KB)
-│  │  ├─ ✅ sndaplausos.wav (105KB)
-│  │  │
-│  │  ├─ 📋 sndregalo_recogido.wav (~1.6KB) - Fase 1
-│  │  ├─ 📋 snd_disparo_red.wav (~0.8KB) - Fase 1
-│  │  ├─ 📋 snd_obstaculo_golpe.wav (~1.2KB) - Fase 1
-│  │  │
-│  │  ├─ 📋 snd_regalo_disparado.wav (~1.2KB) - Fase 2
-│  │  ├─ 📋 snd_entrega_exitosa.wav (~2.4KB) - Fase 2
-│  │  ├─ 📋 snd_chimenea_activa.wav (~1.6KB) - Fase 2
-│  │  │
-│  │  ├─ 📋 snd_confeti_choque.wav (~0.8KB) - Fase 4
-│  │  └─ 📋 resources.res (directivas WAV)
-│  │
-│  ├─ 📂 Audio/Music/
-│  │  ├─ ✅ musica.vgm (Fase 3)
-│  │  ├─ ✅ musicageesebumps.vgm (Intro)
-│  │  │
-│  │  ├─ 📋 musica_polo.vgm - Fase 1
-│  │  ├─ 📋 musica_tejados.vgm - Fase 2
-│  │  ├─ 📋 musica_celebracion.vgm - Fase 4
-│  │  └─ 📋 resources.res (directivas XGM2)
-│  │
-│  └─ resources.res (directivas SGDK)
+│  ├─ 📂 sprites/        (Campana*, Canon, Bomba, Confeti; TODO resto fases)
+│  ├─ 📂 bg/             (Fondo.png, FondoNieve.png; TODO Polo/Tejados/Fiesta)
+│  ├─ 📂 sfx/            (snd_campana, snd_bomba, snd_canon; TODO más SFX)
+│  ├─ 📂 music/          (musica.vgm; TODO musicas fases 1/2/4)
+│  ├─ 📂 Geesebumps/     (paletas + logos + Goosebumps_intro.vgm)
+│  └─ resources.res / resources.h
 │
 ├─ ✅ Makefile
 ├─ ✅ README.md
@@ -398,7 +330,7 @@ VISUALIZACIÓN:
 📋 Screenshot Phase 4 (Celebration) - Por crear
 
 CÓDIGO:
-✅ gamecore.c (core reutilizable)
+✅ game_core.c (core reutilizable)
 ✅ main.c (orquestador)
 ✅ geesebumps.c (intro)
 ✅ minigame_bells.c (FASE 3 - 100% compilable)
