@@ -16,6 +16,11 @@
 #define SCREEN_WIDTH    320
 #define SCREEN_HEIGHT   224
 
+/* DEBUG GLOBAL (1=ON, 0=OFF) */
+#ifndef DEBUG_MODE
+#define DEBUG_MODE 1
+#endif
+
 /* PALETAS */
 #define PAL_COMMON 0
 #define PAL_PLAYER 1

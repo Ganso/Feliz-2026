@@ -168,9 +168,9 @@ ENTRIES = [
     {
         "path": "sprites/Chimenea.png",
         "resource_line": 'SPRITE sprite_chimenea "sprites/Chimenea.png" 3 10 BEST 1 # Placeholder (Chimenea activable con regalo encendida)',
-        "width": 20,
+        "width": 24,
         "height": 160,
-        "final_size": "20x80 píxeles por frame (2 frames apilados)",
+        "final_size": "24x80 píxeles por frame (2 frames apilados)",
         "usage": "Chimenea objetivo en fase tejados; cambia a encendida tras recibir regalo",
         "frames": 2,
         "palette": "PAL_PLAYER ladrillo gris/rojo con brillos de fuego",
@@ -199,8 +199,8 @@ ENTRIES = [
     {
         "path": "sprites/Confeti.png",
         "resource_line": 'SPRITE sprite_confeti "sprites/Confeti.png" 1 1 BEST 2 # Placeholder (Particula confeti celebracion final colorido)',
-        "width": 4,
-        "height": 4,
+        "width": 8,
+        "height": 8,
         "usage": "Partícula de confeti en la fase de celebración",
         "frames": 1,
         "palette": "PAL_EFFECT multicolor brillante",
@@ -498,6 +498,25 @@ def extract_placeholder_detail(resource_line: str) -> str | None:
     return detail
 
 
+def split_resource_line(resource_line: str) -> tuple[str, str | None, str | None]:
+    base_line, comment = resource_line, None
+    if "#" in resource_line:
+        base_line, comment = resource_line.split("#", 1)
+        comment = comment.strip()
+
+    directive = base_line.strip()
+    name = None
+    parts = directive.split()
+    if len(parts) >= 2:
+        name = parts[1]
+
+    comment_line = None
+    if comment and name:
+        comment_line = f"# {name} : {comment}"
+
+    return directive, comment_line, name
+
+
 def describe_resource(entry: dict) -> str | None:
     detail = entry.get("usage") or extract_placeholder_detail(entry["resource_line"])
     if not detail:
@@ -575,14 +594,24 @@ def ensure_resources(entries: list[dict]) -> None:
     existing_lines = []
     if RESOURCES_FILE.exists():
         existing_lines = RESOURCES_FILE.read_text(encoding="utf-8").splitlines()
-    known = {line.strip() for line in existing_lines}
+
+    known_directives = set()
+    for line in existing_lines:
+        directive = line.split("#", 1)[0].strip()
+        if directive:
+            known_directives.add(directive)
+
     updated = list(existing_lines)
 
     for entry in entries:
-        normalized = entry["resource_line"].strip()
-        if normalized not in known:
-            updated.append(entry["resource_line"])
-            known.add(normalized)
+        directive, comment_line, _ = split_resource_line(entry["resource_line"])
+        if directive in known_directives:
+            continue
+
+        if comment_line:
+            updated.append(comment_line)
+        updated.append(directive)
+        known_directives.add(directive)
 
     if updated != existing_lines:
         RESOURCES_FILE.write_text("\n".join(updated) + "\n", encoding="utf-8")

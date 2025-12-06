@@ -16,4 +16,4 @@ out/src/minigame_pickup.o: src/minigame_pickup.c inc/minigame_pickup.h \
  /sgdk/inc/task.h /sgdk/inc/task_cst.h /sgdk/inc/ext/flash-save/flash.h \
  /sgdk/inc/types.h /sgdk/inc/ext/flash-save/saveman.h \
  /sgdk/inc/ext/console.h /sgdk/inc/config.h /sgdk/inc/string.h \
- /sgdk/inc/maths.h /sgdk/inc/dma.h /sgdk/inc/kdebug.h
+ /sgdk/inc/maths.h /sgdk/inc/dma.h /sgdk/inc/kdebug.h res/resources.h

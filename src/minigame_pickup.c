@@ -46,6 +46,7 @@ static SimpleActor elves[NUM_ELVES];
 static SimpleActor enemies[NUM_ENEMIES];
 static Map *mapTrack;
 static s16 trackOffsetY;
+static s16 trackMaxScroll;
 static u32 tileIndex;
 static u16 giftsCollected;
 static u16 giftsCharge;
@@ -113,6 +114,27 @@ static u8 checkCollision(s16 x1, s16 y1, s16 w1, s16 h1, s16 x2, s16 y2, s16 w2,
     return (x1 < x2 + w2) && (x1 + w1 > x2) && (y1 < y2 + h2) && (y1 + h1 > y2);
 }
 
+#if DEBUG_MODE
+static void renderDebug(void) {
+    char buffer[48];
+
+    sprintf(buffer, "DBG frame:%lu off:%d/%d", (u32)frameCounter, trackOffsetY, trackMaxScroll);
+    KLog(buffer);
+
+    sprintf(buffer, "Santa x:%d vx:%d y:%d", santa.x, santa.vx, santa.y);
+    KLog(buffer);
+
+    sprintf(buffer, "Tree0 y:%d Tree1 y:%d", trees[0].y, trees[1].y);
+    KLog(buffer);
+
+    sprintf(buffer, "Elf0 y:%d Elf1 y:%d", elves[0].y, elves[1].y);
+    KLog(buffer);
+
+    sprintf(buffer, "Enemy0 y:%d Enemy1 y:%d", enemies[0].y, enemies[1].y);
+    KLog(buffer);
+}
+#endif
+
 void minigamePickup_init(void) {
     VDP_setScreenWidth320();
     VDP_setScreenHeight224();
@@ -121,6 +143,7 @@ void minigamePickup_init(void) {
 
     tileIndex = TILE_USER_INDEX;
     trackOffsetY = 0;
+    trackMaxScroll = (TRACK_HEIGHT_TILES * 8) - SCREEN_HEIGHT;
     giftsCollected = 0;
     giftsCharge = 0;
     frameCounter = 0;
@@ -193,10 +216,10 @@ void minigamePickup_update(void) {
     if (santa.x > leftLimit + playableWidth) santa.x = leftLimit + playableWidth;
     SPR_setPosition(santa.sprite, santa.x, santa.y);
 
-    trackOffsetY += SCROLL_SPEED;
-    s16 maxScroll = (TRACK_HEIGHT_TILES * 8) - SCREEN_HEIGHT;
-    if (trackOffsetY > maxScroll) {
-        trackOffsetY = 0;
+    /* Scroll del fondo hacia abajo (caida) */
+    trackOffsetY -= SCROLL_SPEED;
+    if (trackOffsetY < 0) {
+        trackOffsetY = trackMaxScroll;
     }
     MAP_scrollTo(mapTrack, 0, trackOffsetY);
 
@@ -256,6 +279,10 @@ void minigamePickup_render(void) {
 
     sprintf(buffer, "Especial: %u/%u", giftsCharge, GIFTS_FOR_SPECIAL);
     VDP_drawText(buffer, 4, 4);
+
+#if DEBUG_MODE
+    renderDebug();
+#endif
 
     SPR_update();
     SYS_doVBlankProcess();
