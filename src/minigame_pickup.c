@@ -9,14 +9,13 @@
 #include "minigame_pickup.h"
 #include "resources.h"
 
-#define NUM_TREES 4
+#define NUM_TREES 2
 #define NUM_ELVES 2
 #define NUM_ENEMIES 4
 #define GIFTS_FOR_SPECIAL 3
 #define TARGET_GIFTS 15
 #define SCROLL_SPEED 1
 #define FORBIDDEN_PERCENT 20
-#define TRACK_HEIGHT_TILES 56   // 320x448px (dos pantallas)
 
 #define ENEMY_LATERAL_DELAY 30
 #define ENEMY_LATERAL_SPEED 1
@@ -26,6 +25,7 @@
 #define ELF_SIZE 32
 #define SANTA_WIDTH 80
 #define SANTA_HEIGHT 128
+#define SANTA_VERTICAL_SPEED 2
 
 typedef struct {
     Sprite* sprite;
@@ -37,6 +37,7 @@ typedef struct {
     Sprite* sprite;
     s16 x, y;
     s8 vx;
+    s8 vy;
     u8 specialReady;
 } Santa;
 
@@ -45,6 +46,7 @@ static SimpleActor trees[NUM_TREES];
 static SimpleActor elves[NUM_ELVES];
 static SimpleActor enemies[NUM_ENEMIES];
 static Map *mapTrack;
+static s16 trackHeightPx;
 static s16 trackOffsetY;
 static s16 trackMaxScroll;
 static u32 tileIndex;
@@ -55,6 +57,8 @@ static u16 frameCounter;
 static s16 leftLimit;
 static s16 rightLimit;
 static s16 playableWidth;
+static s16 santaMinY;
+static s16 santaMaxY;
 
 static void placeActor(SimpleActor *actor, s16 minX, s16 maxX, s16 minY, s16 maxY) {
     actor->x = minX + (random() % (maxX - minX));
@@ -143,7 +147,8 @@ void minigamePickup_init(void) {
 
     tileIndex = TILE_USER_INDEX;
     trackOffsetY = 0;
-    trackMaxScroll = (TRACK_HEIGHT_TILES * 8) - SCREEN_HEIGHT;
+    trackHeightPx = 0;
+    trackMaxScroll = 0;
     giftsCollected = 0;
     giftsCharge = 0;
     frameCounter = 0;
@@ -151,6 +156,8 @@ void minigamePickup_init(void) {
     leftLimit = (SCREEN_WIDTH * FORBIDDEN_PERCENT) / 100;
     rightLimit = SCREEN_WIDTH - leftLimit;
     playableWidth = rightLimit - leftLimit - SANTA_WIDTH;
+    santaMinY = SCREEN_HEIGHT / 2;
+    santaMaxY = SCREEN_HEIGHT - (SANTA_HEIGHT / 2);
 
     if (image_pista_polo_pal.data) {
         PAL_setPalette(PAL_COMMON, image_pista_polo_pal.data, CPU);
@@ -168,11 +175,16 @@ void minigamePickup_init(void) {
     mapTrack = MAP_create(&image_pista_polo_map, BG_B,
         TILE_ATTR_FULL(PAL_COMMON, FALSE, FALSE, FALSE, tileIndex));
     tileIndex += image_pista_polo_tile.numTile;
-    MAP_scrollTo(mapTrack, 0, 0);
+    trackHeightPx = image_pista_polo_map.h * 8;
+    trackMaxScroll = trackHeightPx - SCREEN_HEIGHT;
+    if (trackMaxScroll < 0) trackMaxScroll = 0;
+    trackOffsetY = trackMaxScroll;
+    MAP_scrollTo(mapTrack, 0, trackOffsetY);
 
     santa.x = leftLimit + playableWidth / 2;
-    santa.y = SCREEN_HEIGHT - (SANTA_HEIGHT / 2);
+    santa.y = santaMaxY;
     santa.vx = 0;
+    santa.vy = 0;
     santa.specialReady = FALSE;
     santa.sprite = SPR_addSpriteSafe(&sprite_santa_car, santa.x, santa.y,
         TILE_ATTR(PAL_PLAYER, TRUE, FALSE, FALSE));
@@ -204,6 +216,14 @@ void minigamePickup_update(void) {
         santa.vx = 0;
     }
 
+    if (input & BUTTON_UP) {
+        santa.vy = -SANTA_VERTICAL_SPEED;
+    } else if (input & BUTTON_DOWN) {
+        santa.vy = SANTA_VERTICAL_SPEED;
+    } else {
+        santa.vy = 0;
+    }
+
     if (santa.specialReady && (input & BUTTON_B)) {
         santa.specialReady = FALSE;
         giftsCharge = 0;
@@ -214,6 +234,10 @@ void minigamePickup_update(void) {
     santa.x += santa.vx;
     if (santa.x < leftLimit) santa.x = leftLimit;
     if (santa.x > leftLimit + playableWidth) santa.x = leftLimit + playableWidth;
+
+    santa.y += santa.vy;
+    if (santa.y < santaMinY) santa.y = santaMinY;
+    if (santa.y > santaMaxY) santa.y = santaMaxY;
     SPR_setPosition(santa.sprite, santa.x, santa.y);
 
     /* Scroll del fondo hacia abajo (caida) */

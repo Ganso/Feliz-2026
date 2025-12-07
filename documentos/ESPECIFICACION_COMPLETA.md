@@ -206,7 +206,7 @@ ENTRADA:
 └─ START      → Pausa (opcional).
 
 ESCENARIO:
-├─ Scroll vertical ascendente (MAP image_pista_polo_map) de 320×448 px en bucle.
+├─ Scroll vertical ascendente (MAP image_pista_polo_map) de 320×640 px en bucle.
 ├─ Laterales prohibidos: 20% de la pantalla a cada lado con vallas dibujadas.
 └─ Objetos de pista bajan al mismo ritmo que el scroll para simular estáticos.
 
@@ -236,7 +236,7 @@ SCORE/PROGRESO:
 - `sprite_regalo` (32×32, 1 frame) – Regalo usado en contadores y lanzamientos.
 
 **Fondo y mapa**
-- `image_pista_polo_tile` + `image_pista_polo_map` (320×448, 40×56 tiles) – Pista vertical en bucle con vallas laterales; usa `image_pista_polo_pal`.
+- `image_pista_polo_tile` + `image_pista_polo_map` (320×640, 40×80 tiles) – Pista vertical en bucle con vallas laterales; usa `image_pista_polo_pal`.
 
 **Sonidos reutilizados**
 - `snd_regalo_recogido`: confirma recolección de regalos (árbol o elfo).
