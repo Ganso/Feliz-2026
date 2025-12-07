@@ -60,6 +60,22 @@ static s16 playableWidth;
 static s16 santaMinY;
 static s16 santaMaxY;
 
+static u8 validateHorizontalRange(s16 minX, s16 maxX, const char* context) {
+    if (maxX <= minX) {
+        KLog_f("[%s] Rango X invalido (min=%d, max=%d)", context, minX, maxX);
+        return FALSE;
+    }
+    return TRUE;
+}
+
+static void markActorInactive(SimpleActor *actor, const char* context) {
+    actor->active = FALSE;
+    KLog_f("[%s] Actor desactivado por error de inicializacion", context);
+    if (actor->sprite != NULL) {
+        SPR_setVisibility(actor->sprite, HIDDEN);
+    }
+}
+
 static void placeActor(SimpleActor *actor, s16 minX, s16 maxX, s16 minY, s16 maxY) {
     actor->x = minX + (random() % (maxX - minX));
     actor->y = -((random() % (maxY - minY)) + minY);
@@ -67,31 +83,66 @@ static void placeActor(SimpleActor *actor, s16 minX, s16 maxX, s16 minY, s16 max
 }
 
 static void spawnTree(SimpleActor *tree) {
-    placeActor(tree, leftLimit, rightLimit - TREE_SIZE, 40, SCREEN_HEIGHT);
+    s16 minX = leftLimit;
+    s16 maxX = rightLimit - TREE_SIZE;
+    if (!validateHorizontalRange(minX, maxX, "TREE")) {
+        markActorInactive(tree, "TREE");
+        return;
+    }
+
+    placeActor(tree, minX, maxX, 40, SCREEN_HEIGHT);
     if (tree->sprite == NULL) {
         tree->sprite = SPR_addSpriteSafe(&sprite_arbol_pista, tree->x, tree->y,
             TILE_ATTR(PAL_COMMON, FALSE, FALSE, FALSE));
     }
+    if (tree->sprite == NULL) {
+        markActorInactive(tree, "TREE");
+        return;
+    }
+    tree->active = TRUE;
     SPR_setPosition(tree->sprite, tree->x, tree->y);
 }
 
 static void spawnElf(SimpleActor *elf, u8 side) {
     s16 areaWidth = (SCREEN_WIDTH * FORBIDDEN_PERCENT) / 100;
     s16 baseX = side == 0 ? 8 : SCREEN_WIDTH - areaWidth + 8;
-    placeActor(elf, baseX, baseX + areaWidth - ELF_SIZE, 60, SCREEN_HEIGHT);
+    s16 maxX = baseX + areaWidth - ELF_SIZE;
+    if (!validateHorizontalRange(baseX, maxX, "ELF")) {
+        markActorInactive(elf, "ELF");
+        return;
+    }
+
+    placeActor(elf, baseX, maxX, 60, SCREEN_HEIGHT);
     if (elf->sprite == NULL) {
         elf->sprite = SPR_addSpriteSafe(&sprite_elfo_lateral, elf->x, elf->y,
             TILE_ATTR(PAL_PLAYER, FALSE, FALSE, FALSE));
     }
+    if (elf->sprite == NULL) {
+        markActorInactive(elf, "ELF");
+        return;
+    }
+    elf->active = TRUE;
     SPR_setPosition(elf->sprite, elf->x, elf->y);
 }
 
 static void spawnEnemy(SimpleActor *enemy) {
-    placeActor(enemy, leftLimit, rightLimit - ENEMY_SIZE, 30, SCREEN_HEIGHT);
+    s16 minX = leftLimit;
+    s16 maxX = rightLimit - ENEMY_SIZE;
+    if (!validateHorizontalRange(minX, maxX, "ENEMY")) {
+        markActorInactive(enemy, "ENEMY");
+        return;
+    }
+
+    placeActor(enemy, minX, maxX, 30, SCREEN_HEIGHT);
     if (enemy->sprite == NULL) {
         enemy->sprite = SPR_addSpriteSafe(&sprite_duende_malo, enemy->x, enemy->y,
             TILE_ATTR(PAL_EFFECT, FALSE, FALSE, FALSE));
     }
+    if (enemy->sprite == NULL) {
+        markActorInactive(enemy, "ENEMY");
+        return;
+    }
+    enemy->active = TRUE;
     SPR_setPosition(enemy->sprite, enemy->x, enemy->y);
 }
 
@@ -99,6 +150,17 @@ static void resetSpecialIfReady(void) {
     if (giftsCharge >= GIFTS_FOR_SPECIAL) {
         santa.specialReady = TRUE;
         SPR_setAnim(santa.sprite, 1);
+    }
+}
+
+static void clampTrackOffset(void) {
+    if (trackOffsetY < 0) {
+        KLog("[TRACK] Offset negativo detectado, se fuerza a 0");
+        trackOffsetY = 0;
+    }
+    if (trackOffsetY > trackMaxScroll) {
+        KLog_f("[TRACK] Offset %d supera maximo %d, se recorta", trackOffsetY, trackMaxScroll);
+        trackOffsetY = trackMaxScroll;
     }
 }
 
@@ -179,7 +241,14 @@ void minigamePickup_init(void) {
     trackMaxScroll = trackHeightPx - SCREEN_HEIGHT;
     if (trackMaxScroll < 0) trackMaxScroll = 0;
     trackOffsetY = trackMaxScroll;
-    MAP_scrollTo(mapTrack, 0, trackOffsetY);
+    if (mapTrack == NULL) {
+        KLog("[TRACK] Error al crear el mapa de pista");
+        trackHeightPx = 0;
+        trackMaxScroll = 0;
+        trackOffsetY = 0;
+    } else {
+        MAP_scrollTo(mapTrack, 0, trackOffsetY);
+    }
 
     santa.x = leftLimit + playableWidth / 2;
     santa.y = santaMaxY;
@@ -245,7 +314,10 @@ void minigamePickup_update(void) {
     if (trackOffsetY < 0) {
         trackOffsetY = trackMaxScroll;
     }
-    MAP_scrollTo(mapTrack, 0, trackOffsetY);
+    clampTrackOffset();
+    if (mapTrack != NULL) {
+        MAP_scrollTo(mapTrack, 0, trackOffsetY);
+    }
 
     for (u8 i = 0; i < NUM_TREES; i++) {
         if (!trees[i].active) continue;
@@ -262,6 +334,7 @@ void minigamePickup_update(void) {
     }
 
     for (u8 i = 0; i < NUM_ELVES; i++) {
+        if (!elves[i].active) continue;
         elves[i].y += SCROLL_SPEED;
         if (elves[i].y > SCREEN_HEIGHT) {
             spawnElf(&elves[i], i % 2);
@@ -275,6 +348,7 @@ void minigamePickup_update(void) {
     }
 
     for (u8 i = 0; i < NUM_ENEMIES; i++) {
+        if (!enemies[i].active) continue;
         enemies[i].y += SCROLL_SPEED;
         if ((frameCounter % ENEMY_LATERAL_DELAY) == 0) {
             if (enemies[i].x < santa.x) enemies[i].x += ENEMY_LATERAL_SPEED;
