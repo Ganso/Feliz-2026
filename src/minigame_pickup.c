@@ -15,7 +15,7 @@
 #define GIFTS_FOR_SPECIAL 3
 #define TARGET_GIFTS 15
 #define SCROLL_SPEED 1
-#define FORBIDDEN_PERCENT 20
+#define FORBIDDEN_PERCENT 10
 
 #define ENEMY_LATERAL_DELAY 30
 #define ENEMY_LATERAL_SPEED 1
@@ -45,6 +45,12 @@ typedef struct {
     u8 specialReady;
 } Santa;
 
+typedef struct {
+    s8 accel;
+    s8 friction;
+    s8 maxVelocity;
+} InertiaConfig;
+
 static Santa santa;
 static SimpleActor trees[NUM_TREES];
 static SimpleActor elves[NUM_ELVES];
@@ -63,6 +69,7 @@ static s16 rightLimit;
 static s16 playableWidth;
 static s16 santaMinY;
 static s16 santaMaxY;
+static InertiaConfig santaInertia;
 
 int kprintf(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 
@@ -110,15 +117,10 @@ static void spawnTree(SimpleActor *tree) {
 }
 
 static void spawnElf(SimpleActor *elf, u8 side) {
-    s16 areaWidth = (SCREEN_WIDTH * FORBIDDEN_PERCENT) / 100;
-    s16 baseX = side == 0 ? 8 : SCREEN_WIDTH - areaWidth + 8;
-    s16 maxX = baseX + areaWidth - ELF_SIZE;
-    if (!validateHorizontalRange(baseX, maxX, "ELF")) {
-        markActorInactive(elf, "ELF");
-        return;
-    }
+    elf->x = (side == 0) ? (leftLimit - ELF_SIZE - 3) : (rightLimit + 3);
+    elf->y = -((random() % (SCREEN_HEIGHT - 60)) + 60);
+    elf->active = TRUE;
 
-    placeActor(elf, baseX, maxX, 60, SCREEN_HEIGHT);
     if (elf->sprite == NULL) {
         elf->sprite = SPR_addSpriteSafe(&sprite_elfo_lateral, elf->x, elf->y,
             TILE_ATTR(PAL_PLAYER, FALSE, FALSE, FALSE));
@@ -188,6 +190,36 @@ static u8 checkCollision(s16 x1, s16 y1, s16 w1, s16 h1, s16 x2, s16 y2, s16 w2,
     return (x1 < x2 + w2) && (x1 + w1 > x2) && (y1 < y2 + h2) && (y1 + h1 > y2);
 }
 
+static void applyInertiaAxis(s16 *position, s8 *velocity, s16 minLimit, s16 maxLimit,
+    s8 inputDirection, const InertiaConfig *config) {
+    if (inputDirection < 0) {
+        *velocity = (*velocity > -config->maxVelocity) ?
+            *velocity - config->accel : -config->maxVelocity;
+    } else if (inputDirection > 0) {
+        *velocity = (*velocity < config->maxVelocity) ?
+            *velocity + config->accel : config->maxVelocity;
+    } else {
+        if (*velocity > 0) {
+            *velocity -= config->friction;
+            if (*velocity < 0) *velocity = 0;
+        } else if (*velocity < 0) {
+            *velocity += config->friction;
+            if (*velocity > 0) *velocity = 0;
+        }
+    }
+
+    *position += *velocity;
+    if (*position < minLimit) *position = minLimit;
+    if (*position > maxLimit) *position = maxLimit;
+}
+
+static void applyInertiaMovement(s16 *x, s16 *y, s8 *vx, s8 *vy,
+    s8 inputX, s8 inputY, s16 minX, s16 maxX, s16 minY, s16 maxY,
+    const InertiaConfig *inertia) {
+    applyInertiaAxis(x, vx, minX, maxX, inputX, inertia);
+    applyInertiaAxis(y, vy, minY, maxY, inputY, inertia);
+}
+
 #if DEBUG_MODE
 static void renderDebug(void) {
     char buffer[48];
@@ -215,8 +247,11 @@ void minigamePickup_init(void) {
     leftLimit = (SCREEN_WIDTH * FORBIDDEN_PERCENT) / 100;
     rightLimit = SCREEN_WIDTH - leftLimit;
     playableWidth = rightLimit - leftLimit - SANTA_WIDTH;
-    santaMinY = SANTA_HEIGHT / 2;
+    santaMinY = 0;
     santaMaxY = SCREEN_HEIGHT - (SANTA_HEIGHT / 2);
+    santaInertia.accel = 1;
+    santaInertia.friction = 1;
+    santaInertia.maxVelocity = 3; /* velocidad máxima más baja para un movimiento más lento y con inercia */
 
     if (image_pista_polo_pal.data) {
         PAL_setPalette(PAL_COMMON, image_pista_polo_pal.data, CPU);
@@ -273,22 +308,14 @@ void minigamePickup_init(void) {
 
 void minigamePickup_update(void) {
     u16 input = gameCore_readInput();
+    s8 inputDirX = 0;
+    s8 inputDirY = 0;
 
-    if (input & BUTTON_LEFT) {
-        santa.vx = -2;
-    } else if (input & BUTTON_RIGHT) {
-        santa.vx = 2;
-    } else {
-        santa.vx = 0;
-    }
+    if (input & BUTTON_LEFT) inputDirX = -1;
+    else if (input & BUTTON_RIGHT) inputDirX = 1;
 
-    if (input & BUTTON_UP) {
-        santa.vy = -SANTA_VERTICAL_SPEED;
-    } else if (input & BUTTON_DOWN) {
-        santa.vy = SANTA_VERTICAL_SPEED;
-    } else {
-        santa.vy = 0;
-    }
+    if (input & BUTTON_UP) inputDirY = -1;
+    else if (input & BUTTON_DOWN) inputDirY = 1;
 
     if (santa.specialReady && (input & BUTTON_B)) {
         santa.specialReady = FALSE;
@@ -297,13 +324,11 @@ void minigamePickup_update(void) {
         clearEnemies();
     }
 
-    santa.x += santa.vx;
-    if (santa.x < leftLimit) santa.x = leftLimit;
-    if (santa.x > leftLimit + playableWidth) santa.x = leftLimit + playableWidth;
-
-    santa.y += santa.vy;
-    if (santa.y < santaMinY) santa.y = santaMinY;
-    if (santa.y > santaMaxY) santa.y = santaMaxY;
+    applyInertiaMovement(&santa.x, &santa.y, &santa.vx, &santa.vy,
+        inputDirX, inputDirY,
+        leftLimit, leftLimit + playableWidth,
+        santaMinY, santaMaxY,
+        &santaInertia);
     SPR_setPosition(santa.sprite, santa.x, santa.y);
 
     /* Scroll del fondo hacia abajo (caida) */
@@ -341,9 +366,11 @@ void minigamePickup_update(void) {
 
     for (u8 i = 0; i < NUM_ELVES; i++) {
         if (!elves[i].active) continue;
-        elves[i].y += SCROLL_SPEED;
-        if (elves[i].y > SCREEN_HEIGHT) {
-            spawnElf(&elves[i], i % 2);
+        if (scrollStep) {
+            elves[i].y += scrollStep;
+            if (elves[i].y > SCREEN_HEIGHT) {
+                spawnElf(&elves[i], i % 2);
+            }
         }
         if (checkCollision(santa.x, santa.y, SANTA_WIDTH, SANTA_HEIGHT,
                 elves[i].x, elves[i].y, ELF_SIZE, ELF_SIZE)) {
