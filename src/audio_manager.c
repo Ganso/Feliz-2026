@@ -1,6 +1,6 @@
 #include <genesis.h>
 #include "audio_manager.h"
-#include "resources.h"
+#include "resources_music.h"
 #include "res_geesebumps.h"
 
 void audio_init(void) {
@@ -43,7 +43,7 @@ void audio_stop_music(void) {
 
 void audio_test_playback(const u8* vgm_track) {
     VDP_clearTextArea(0, 0, 40, 28);
-    VDP_drawText("probando música", 10, 12);
+    VDP_drawText("probando musica...", 10, 12);
     audio_play_loop(vgm_track);
 
     while (1) {

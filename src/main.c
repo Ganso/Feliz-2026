@@ -13,6 +13,8 @@
 #include "minigame_delivery.h"
 #include "minigame_celebration.h"
 #include "geesebumps.h"
+#include "audio_manager.h"
+#include "resources_music.h"
 
 /* Fases del juego */
 enum {
@@ -34,6 +36,10 @@ int main() {
     JOY_init();
     Z80_init();
     Z80_loadDriver(Z80_DRIVER_XGM2, 1);
+    audio_init();
+
+    // Loop infinito de prueba de música (borrar en versión definitiva)
+    //audio_test_playback(musica_test);
 
     /* Loop principal */
     while (1) {
@@ -41,6 +47,7 @@ int main() {
             case PHASE_INTRO:
                 /* Mostrar intro o pasar a Fase 1 */
                 KLog("Mostrando intro...");
+                audio_play_intro();
                 //geesebumps_logo();
                 gameCore_fadeToBlack();
                 currentPhase = PHASE_PICKUP;
@@ -49,6 +56,7 @@ int main() {
             case PHASE_PICKUP:
                 /* Fase 1: Recogida - Polo Norte */
                 KLog("Fase 1: Recogida");
+                audio_play_phase1();
                 minigamePickup_init();
                 while (!minigamePickup_isComplete()) {
                     minigamePickup_update();
@@ -62,6 +70,7 @@ int main() {
             case PHASE_DELIVERY:
                 /* Fase 2: Entrega - Tejados */
                 KLog("Fase 2: Entrega");
+                audio_play_phase2();
                 minigameDelivery_init();
                 while (!minigameDelivery_isComplete()) {
                     minigameDelivery_update();
@@ -87,6 +96,7 @@ int main() {
             case PHASE_CELEBRATION:
                 /* Fase 4: Celebración */
                 KLog("Fase 4: Celebración");
+                audio_play_phase4();
                 minigameCelebration_init();
                 while (!minigameCelebration_isComplete()) {
                     minigameCelebration_update();
@@ -100,6 +110,7 @@ int main() {
             case PHASE_END:
                 /* Mostrar pantalla final y salir */
                 KLog("Mostrando pantalla final...");
+                audio_stop_music();
                 VDP_clearPlane(BG_A, TRUE);
                 VDP_clearPlane(BG_B, TRUE);
                 VDP_drawText("!FELIZ 2026!", 10, 10);

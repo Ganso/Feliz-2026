@@ -7,9 +7,12 @@
  * ═════════════════════════════════════════════════════════════════════════════
  */
 
-#include "minigame_bells.h"
-#include "resources.h"
 #include <genesis.h>
+#include "audio_manager.h"
+#include "minigame_bells.h"
+#include "resources_bg.h"
+#include "resources_sfx.h"
+#include "resources_sprites.h"
 
 /* ═══════════════════════════════════════════════════════════════════════════
    CONSTANTES
@@ -402,10 +405,7 @@ void minigameBells_init(void) {
     MAP_scrollTo(mapSnow, 0, 0);
     
     /* Música */
-    XGM2_setLoopNumber(-1);
-    XGM2_play(musica_fondo);
-    XGM2_setFMVolume(70);
-    XGM2_setPSGVolume(100);
+    audio_play_phase3();
     
     /* Campanas */
     for (u8 i = 0; i < NUM_BELLS; i++) {

@@ -7,7 +7,8 @@
  */
 
 #include "minigame_pickup.h"
-#include "resources.h"
+#include "resources_bg.h"
+#include "resources_sprites.h"
 
 #define NUM_TREES 1
 #define NUM_ELVES  2
@@ -27,6 +28,8 @@
 #define ELF_SIZE 32
 #define SANTA_WIDTH 80
 #define SANTA_HEIGHT 128
+#define SANTA_HITBOX_PADDING 20   /* píxeles que no colisionan a cada lado */
+#define SANTA_HITBOX_WIDTH (SANTA_WIDTH - 2 * SANTA_HITBOX_PADDING)
 #define SANTA_VERTICAL_SPEED 2
 #define TRACK_HEIGHT_PX 640
 #define VERTICAL_SLOW_DIV 2  /* factor de retardo vertical (50%) */
@@ -331,6 +334,12 @@ void minigamePickup_update(void) {
         &santaInertia);
     SPR_setPosition(santa.sprite, santa.x, santa.y);
 
+    /* Caja de colisión reducida: solo los 40 px centrales (80 px de sprite) */
+    const s16 santaHitX = santa.x + SANTA_HITBOX_PADDING;
+    const s16 santaHitY = santa.y;
+    const s16 santaHitW = SANTA_HITBOX_WIDTH;
+    const s16 santaHitH = SANTA_HEIGHT;
+
     /* Scroll del fondo hacia abajo (caida) */
     const s16 scrollStep = ((frameCounter % VERTICAL_SLOW_DIV) == 0) ? SCROLL_SPEED : 0;
     if (scrollStep) {
@@ -354,7 +363,7 @@ void minigamePickup_update(void) {
             }
         }
         if (checkCollision(
-                santa.x, santa.y, SANTA_WIDTH, SANTA_HEIGHT,
+                santaHitX, santaHitY, santaHitW, santaHitH,
                 trees[i].x + (TREE_SIZE - TREE_HITBOX_SIZE) / 2,
                 trees[i].y + (TREE_SIZE - TREE_HITBOX_SIZE) / 2,
                 TREE_HITBOX_SIZE, TREE_HITBOX_SIZE)) {
@@ -372,7 +381,7 @@ void minigamePickup_update(void) {
                 spawnElf(&elves[i], i % 2);
             }
         }
-        if (checkCollision(santa.x, santa.y, SANTA_WIDTH, SANTA_HEIGHT,
+        if (checkCollision(santaHitX, santaHitY, santaHitW, santaHitH,
                 elves[i].x, elves[i].y, ELF_SIZE, ELF_SIZE)) {
             collectGift();
             spawnElf(&elves[i], i % 2);
@@ -391,7 +400,7 @@ void minigamePickup_update(void) {
             spawnEnemy(&enemies[i]);
         }
         if (checkCollision(
-                santa.x, santa.y, SANTA_WIDTH, SANTA_HEIGHT,
+                santaHitX, santaHitY, santaHitW, santaHitH,
                 enemies[i].x + (ENEMY_SIZE - ENEMY_HITBOX_SIZE) / 2,
                 enemies[i].y + (ENEMY_SIZE - ENEMY_HITBOX_SIZE) / 2,
                 ENEMY_HITBOX_SIZE, ENEMY_HITBOX_SIZE)) {

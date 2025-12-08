@@ -16,5 +16,5 @@ out/src/audio_manager.o: src/audio_manager.c /sgdk/inc/genesis.h \
  /sgdk/inc/task.h /sgdk/inc/task_cst.h /sgdk/inc/ext/flash-save/flash.h \
  /sgdk/inc/types.h /sgdk/inc/ext/flash-save/saveman.h \
  /sgdk/inc/ext/console.h /sgdk/inc/config.h /sgdk/inc/string.h \
- /sgdk/inc/maths.h /sgdk/inc/dma.h inc/audio_manager.h res/resources.h \
- res/res_geesebumps.h
+ /sgdk/inc/maths.h /sgdk/inc/dma.h inc/audio_manager.h \
+ res/resources_music.h res/res_geesebumps.h
