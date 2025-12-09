@@ -1,36 +1,30 @@
-# 🎄 JUEGO NAVIDAD 2026 by GEESEBUMPS
+# Feliz 2026 (Mega Drive) by Geesebumps
 
-Juego minijuegos navideño para Sega Genesis/Mega Drive desarrollado con SGDK.
+Juego de minijuegos navidenos para Sega Genesis/Mega Drive desarrollado con SGDK.
 
-## 📋 Requisitos
+## Estado actual
+- **Fase 1**: Recogida (Polo Norte) - Implementacion parcial: scroll vertical, inercia y recogida de regalos/elfos. Falta disparo especial definitivo y el sprite del regalo que lanzan los elfos laterales.
+- **Fase 2**: Entrega (Tejados) - Placeholder: suma entregas automaticamente cada 45 frames hasta 10.
+- **Fase 3**: Campanadas (Iglesia) - Implementada: fondo + paralaje de nieve, canion lateral con cooldown, campanas/bombas con SFX y HUD propio.
+- **Fase 4**: Celebracion (Fiesta) - Placeholder: contador simple hasta 300 frames.
 
-- SGDK (Sega Genesis Development Kit)
+## Requisitos
+- SGDK (Sega Genesis Development Kit) configurado en `SGDK_PATH` o `%GDK%`.
+- Toolchain m68k incluida en SGDK; la compilacion se realiza solo en local.
 
-## 📁 Estructura
+## Estructura
+- `src/`: codigo C de fases y sistemas (core, audio, HUD, nieve, intro).
+- `inc/`: headers correspondientes.
+- `res/`: definiciones `.res` y recursos generados (`resources_*.h`, `res_geesebumps.h`).
+- `documentos/`: documentacion del proyecto y referencia SGDK (`documentos/sgdk-reference-2025-11-15.txt`).
+- `out/`: binarios generados localmente (ROM y objetos); no se editan a mano.
 
-```
-christmas-game-2026/
-├── src/              (Archivos C y minijuegos)
-├── inc/              (Headers)
-├── res/              (Recursos)
-│   ├── sprites/      (Sprites)
-│   ├── bg/           (Fondos y paletas)
-│   ├── sfx/          (Efectos de sonido)
-│   ├── music/        (Música in‑game)
-│   ├── resources_bg.res      (Directivas SGDK para fondos)
-│   ├── resources_sprites.res (Directivas SGDK para sprites)
-│   ├── resources_sfx.res     (Directivas SGDK para efectos)
-│   ├── resources_music.res   (Directivas SGDK para música)
-│   └── Geesebumps/   (Intro/logo Geesebumps y música)
-├── build/            (Salida: rom.bin)
-├── Makefile
-└── README.md
-```
+## Compilar y ejecutar (solo en local)
+- En raiz: `make` usa `SGDK_PATH` y genera `build/rom.bin`.
+- VS Code: tareas `make`, `clean` y `run-emulator` en `.vscode/tasks.json` (usa `%GDK%\\bin\\make` y un script Blastem).
+- No ejecutes compilacion desde IA/CI; solo el equipo humano con SGDK instalado.
 
-## 🎮 Fases del Juego
-
-- **Fase 1**: Recogida (Polo Norte) - PLACEHOLDER
-- **Fase 2**: Entrega (Tejados) - PLACEHOLDER
-- **Fase 3**: Campanadas (Iglesia) - ⭐ ACTUAL
-- **Fase 4**: Celebración (Fiesta) - PLACEHOLDER
-
+## Notas de desarrollo
+- El bucle principal (`src/main.c`) orquesta `INTRO -> PICKUP -> DELIVERY -> BELLS -> CELEBRATION -> END`, aplicando `gameCore_fadeToBlack()` entre fases.
+- Recursos nuevos se anaden editando los `.res` y regenerando con `rescomp`; no modificar a mano los headers generados.
+- Mantener este README actualizado cuando cambie el estado de las fases, dependencias o estructura.

@@ -10,12 +10,6 @@ SPRITE sprite_bola_confeti "sprites/BolaConfeti.png" 1 1 BEST 1
 SPRITE sprite_regalo "sprites/Regalo.png" 4 4 BEST 1
 # sprite_regalo_bn : Placeholder (Contador regalo blanco y negro)
 SPRITE sprite_regalo_bn "sprites/RegaloBN.png" 4 4 BEST 1
-# sprite_canon_polo : Placeholder (Canon trineo fase polo principal)
-SPRITE sprite_canon_polo "sprites/CanonPolo.png" 10 8 BEST 1
-# sprite_red_confeti : Placeholder (Disparo red confeti polo rapido)
-SPRITE sprite_red_confeti "sprites/RedConfeti.png" 1 1 BEST 2
-# sprite_copo_grande : Placeholder (Obstaculo copo nieve grande estatico)
-SPRITE sprite_copo_grande "sprites/CopoGrande.png" 8 8 BEST
 # sprite_santa_car : Placeholder (Carro vertical de Papa Noel para scroll)
 SPRITE sprite_santa_car "sprites/SantaCar.png" 10 16 BEST 2
 # sprite_arbol_pista : Placeholder (Arbol 64x64 decorativo/coleccionable)

@@ -14,6 +14,7 @@ RESOURCE_FILES = {
 }
 DEFAULT_AUDIO_DURATION = 0.25
 
+# Simple placeholder palette (index 0 is transparent/black)
 PALETTE = [
     (0, 0, 0),
     (255, 0, 0),
@@ -33,15 +34,18 @@ PALETTE = [
     (128, 128, 128),
 ]
 
+# Placeholders currently necesarios. Se han eliminado assets de fase 1 que ya no usaremos
+# (canon/trineo, disparo confeti, copo gigante).
 ENTRIES = [
+    # Paletas fondo
     {
         "path": "bg/FondoPolo.png",
         "resource_line": 'PALETTE image_fondo_polo_pal "bg/FondoPolo.png" BEST # Placeholder (Paleta fondo polar fase uno)',
         "width": 512,
         "height": 256,
-        "final_size": "320x224 píxeles (tileset 512x256)",
-        "usage": "Paleta base del escenario Polo Norte con nieve, cielo azul y luces frías",
-        "palette": "PAL_COMMON con blancos, azules fríos y negros",
+        "final_size": "320x224 pixeles (tileset 512x256)",
+        "usage": "Paleta base del escenario Polo Norte con nieve, cielo azul y luces frias",
+        "palette": "PAL_COMMON con blancos, azules frios y negros",
     },
     {
         "path": "bg/PistaPolo.png",
@@ -57,7 +61,7 @@ ENTRIES = [
         "resource_line": 'PALETTE image_fondo_tejados_pal "bg/FondoTejados.png" BEST # Placeholder (Paleta fondo tejados noche navidad)',
         "width": 512,
         "height": 256,
-        "final_size": "320x224 píxeles (tileset 512x256)",
+        "final_size": "320x224 pixeles (tileset 512x256)",
         "usage": "Paleta nocturna de la ciudad con tejados, luna y luces amarillas",
         "palette": "PAL_COMMON con azules oscuros, grises, rojos y amarillos de ventanas",
     },
@@ -66,10 +70,11 @@ ENTRIES = [
         "resource_line": 'PALETTE image_fondo_fiesta_pal "bg/FondoFiesta.png" BEST # Placeholder (Paleta fondo fiesta final colorido)',
         "width": 512,
         "height": 256,
-        "final_size": "320x224 píxeles (tileset 512x256)",
-        "usage": "Paleta cálida para el salón decorado de la fase de celebración",
+        "final_size": "320x224 pixeles (tileset 512x256)",
+        "usage": "Paleta calida para el salon decorado de la fase de celebracion",
         "palette": "PAL_COMMON con rojos, dorados y verdes festivos",
     },
+    # Sprites fase 1 activos
     {
         "path": "sprites/Regalo.png",
         "resource_line": 'SPRITE sprite_regalo "sprites/Regalo.png" 4 4 BEST 1 # Placeholder (Regalo cayendo en fase polar)',
@@ -78,64 +83,34 @@ ENTRIES = [
         "usage": "Regalo que cae en la fase 1; el jugador debe recogerlo",
         "frames": 1,
         "palette": "PAL_PLAYER con rojo brillante y cinta dorada",
-        "visual": "Caja cúbica roja con lazo dorado vista frontal",
+        "visual": "Caja cubica roja con lazo dorado vista frontal",
     },
     {
         "path": "sprites/RegaloBN.png",
         "resource_line": 'SPRITE sprite_regalo_bn "sprites/RegaloBN.png" 4 4 BEST 1 # Placeholder (Contador regalo blanco y negro)',
         "width": 32,
         "height": 32,
-        "usage": "Versión en escala de grises para el contador de regalos",
+        "usage": "Version en escala de grises para el contador de regalos",
         "frames": 1,
         "palette": "PAL_PLAYER en escala de grises",
-        "visual": "Caja cúbica monocroma con lazo claro para marcadores HUD",
-    },
-    {
-        "path": "sprites/CanonPolo.png",
-        "resource_line": 'SPRITE sprite_canon_polo "sprites/CanonPolo.png" 10 8 BEST 1 # Placeholder (Canon trineo fase polo principal)',
-        "width": 80,
-        "height": 64,
-        "usage": "Cañón en trineo usado en la fase Polo Norte para disparar confeti",
-        "frames": 2,
-        "palette": "PAL_PLAYER con madera, rojo y metal gris",
-        "visual": "Trineo rojo con cañón de madera, animación reposo/disparo",
-    },
-    {
-        "path": "sprites/RedConfeti.png",
-        "resource_line": 'SPRITE sprite_red_confeti "sprites/RedConfeti.png" 1 1 BEST 2 # Placeholder (Disparo red confeti polo rapido)',
-        "width": 8,
-        "height": 8,
-        "usage": "Proyectil rápido de confeti en fase Polo Norte",
-        "frames": 1,
-        "palette": "PAL_EFFECT multicolor rojo y dorado",
-        "visual": "Partícula compacta brillante ideal para ráfagas",
-    },
-    {
-        "path": "sprites/CopoGrande.png",
-        "resource_line": 'SPRITE sprite_copo_grande "sprites/CopoGrande.png" 8 8 BEST # Placeholder (Obstaculo copo nieve grande estatico)',
-        "width": 64,
-        "height": 64,
-        "usage": "Obstáculo estático de copo de nieve grande en fase Polo Norte",
-        "frames": 1,
-        "palette": "PAL_COMMON blanco brillante",
-        "visual": "Copo de nieve geométrico grande y legible",
+        "visual": "Caja cubica monocroma con lazo claro para marcadores HUD",
     },
     {
         "path": "sprites/SantaCar.png",
         "resource_line": 'SPRITE sprite_santa_car "sprites/SantaCar.png" 10 16 BEST 2 # Placeholder (Carro vertical de Papa Noel para scroll)',
         "width": 80,
         "height": 128,
-        "usage": "Carro de Papá Noel visto cenital con animación de nariz parpadeando",
+        "usage": "Carro de Papa Noel visto cenital con animacion de nariz parpadeando",
         "frames": 2,
         "palette": "PAL_PLAYER rojos, verdes y dorados",
-        "visual": "Rectángulo grande con trineo y reno, frame base y frame de nariz brillante",
+        "visual": "Rectangulo grande con trineo y reno, frame base y frame de nariz brillante",
     },
     {
         "path": "sprites/ArbolPista.png",
         "resource_line": 'SPRITE sprite_arbol_pista "sprites/ArbolPista.png" 8 8 BEST 1 # Placeholder (Arbol 64x64 decorativo/coleccionable)',
         "width": 64,
         "height": 64,
-        "usage": "Árbol de pista de nieve que acompaña al scroll vertical",
+        "usage": "Arbol de pista de nieve que acompana al scroll vertical",
         "frames": 1,
         "palette": "PAL_COMMON con verde y nieve",
         "visual": "Abeto cubierto de nieve en vista cenital",
@@ -147,7 +122,7 @@ ENTRIES = [
         "height": 32,
         "usage": "Elfo aliado en los laterales que lanza regalos",
         "frames": 1,
-        "palette": "PAL_PLAYER con verdes y rojo navideño",
+        "palette": "PAL_PLAYER con verdes y rojo navideno",
         "visual": "Elfo de perfil sosteniendo un regalo",
     },
     {
@@ -158,38 +133,39 @@ ENTRIES = [
         "usage": "Duende malvado que se acerca lateralmente al carro",
         "frames": 1,
         "palette": "PAL_EFFECT con tonos morado y negro",
-        "visual": "Criatura pequeña con gorro puntiagudo y mirada hostil",
+        "visual": "Criatura pequena con gorro puntiagudo y mirada hostil",
     },
+    # Fase 2
     {
         "path": "sprites/Regalos_Pequeno.png",
-        "resource_line": 'SPRITE sprite_regalo_entrega "sprites/Regalos_Pequeno.png" 3 3 BEST 1 # Placeholder (Regalo pequeño entrega tejados volador)',
+        "resource_line": 'SPRITE sprite_regalo_entrega "sprites/Regalos_Pequeno.png" 3 3 BEST 1 # Placeholder (Regalo pequeno entrega tejados volador)',
         "width": 24,
         "height": 24,
-        "usage": "Regalo pequeño que se lanza a las chimeneas en fase de tejados",
+        "usage": "Regalo pequeno que se lanza a las chimeneas en fase de tejados",
         "frames": 1,
         "palette": "PAL_PLAYER con rojo y cinta dorada",
-        "visual": "Caja cúbica miniatura con lazo superior, pensada para rotar en vuelo",
+        "visual": "Caja cubica miniatura con lazo superior, pensada para rotar en vuelo",
     },
     {
         "path": "sprites/Chimenea.png",
         "resource_line": 'SPRITE sprite_chimenea "sprites/Chimenea.png" 3 10 BEST 1 # Placeholder (Chimenea activable con regalo encendida)',
         "width": 24,
         "height": 160,
-        "final_size": "24x80 píxeles por frame (2 frames apilados)",
+        "final_size": "24x80 pixeles por frame (2 frames apilados)",
         "usage": "Chimenea objetivo en fase tejados; cambia a encendida tras recibir regalo",
         "frames": 2,
         "palette": "PAL_PLAYER ladrillo gris/rojo con brillos de fuego",
-        "visual": "Chimenea vertical estrecha con versión apagada y otra con humo y brasas",
+        "visual": "Chimenea vertical estrecha con version apagada y otra con humo y brasas",
     },
     {
         "path": "sprites/CanonTejado.png",
         "resource_line": 'SPRITE sprite_canon_tejado "sprites/CanonTejado.png" 8 12 BEST 1 # Placeholder (Canon tejado entrega regalos principal)',
         "width": 64,
         "height": 96,
-        "usage": "Cañón móvil en tejados para disparar regalos hacia las chimeneas",
+        "usage": "Canon movil en tejados para disparar regalos hacia las chimeneas",
         "frames": 2,
         "palette": "PAL_PLAYER madera y rojo con destello de disparo",
-        "visual": "Cañón sobre base de trineo con frame de retroceso y chispa",
+        "visual": "Canon sobre base de trineo con frame de retroceso y chispa",
     },
     {
         "path": "sprites/Nube.png",
@@ -199,17 +175,18 @@ ENTRIES = [
         "usage": "Nube de parallax lenta para fondo de tejados",
         "frames": 1,
         "palette": "PAL_COMMON blanco y gris suave",
-        "visual": "Nube algodonosa simple para repetición en tilemap",
+        "visual": "Nube algodonosa simple para repeticion en tilemap",
     },
+    # Fase 4
     {
         "path": "sprites/Confeti.png",
         "resource_line": 'SPRITE sprite_confeti "sprites/Confeti.png" 1 1 BEST 2 # Placeholder (Particula confeti celebracion final colorido)',
         "width": 8,
         "height": 8,
-        "usage": "Partícula de confeti en la fase de celebración",
+        "usage": "Particula de confeti en la fase de celebracion",
         "frames": 1,
         "palette": "PAL_EFFECT multicolor brillante",
-        "visual": "Pieza diminuta de papel de color sólido",
+        "visual": "Pieza diminuta de papel de color solido",
     },
     {
         "path": "sprites/PersonajeFiesta.png",
@@ -218,38 +195,39 @@ ENTRIES = [
         "height": 64,
         "usage": "Personaje celebrando y bailando en la fase final",
         "frames": 4,
-        "palette": "PAL_PLAYER colores cálidos festivos",
-        "visual": "Figura humana bailando con animación de 4 frames",
+        "palette": "PAL_PLAYER colores calidos festivos",
+        "visual": "Figura humana bailando con animacion de 4 frames",
     },
     {
         "path": "sprites/ArbolFiesta.png",
         "resource_line": 'SPRITE sprite_arbol_fiesta "sprites/ArbolFiesta.png" 10 15 BEST 1 # Placeholder (Arbol navidad animado fiesta central)',
         "width": 80,
         "height": 240,
-        "final_size": "80x120 píxeles por frame (2 frames verticales)",
-        "usage": "Árbol de navidad protagonista en la sala de fiesta",
+        "final_size": "80x120 pixeles por frame (2 frames verticales)",
+        "usage": "Arbol de navidad protagonista en la sala de fiesta",
         "frames": 2,
         "palette": "PAL_PLAYER con verdes y luces multicolor",
-        "visual": "Árbol alto con guirnaldas y dos estados de luces parpadeantes",
+        "visual": "Arbol alto con guirnaldas y dos estados de luces parpadeantes",
     },
     {
         "path": "sprites/Globo.png",
         "resource_line": 'SPRITE sprite_globo "sprites/Globo.png" 3 4 BEST 2 # Placeholder (Globo decoracion fiesta final colorido)',
         "width": 24,
         "height": 32,
-        "usage": "Globos decorativos colgando en la fase de celebración",
+        "usage": "Globos decorativos colgando en la fase de celebracion",
         "frames": 1,
         "palette": "PAL_EFFECT rojo, azul y amarillo",
         "visual": "Globo ovalado con cuerda fina, 3 variantes de color",
     },
+    # Tilemaps y mapas fase 1
     {
         "path": "bg/FondoPolo.png",
         "resource_line": 'TILESET image_fondo_polo_tile "bg/FondoPolo.png" BEST # Placeholder (Fondo tileset fase polo principal)',
         "width": 512,
         "height": 256,
-        "final_size": "320x224 píxeles visibles (tileset 512x256)",
-        "usage": "Tileset base del fondo estático del Polo Norte sin parallax",
-        "visual": "Patrón de nieve, árboles lejanos y luna en cielo frío",
+        "final_size": "320x224 pixeles visibles (tileset 512x256)",
+        "usage": "Tileset base del fondo estatico del Polo Norte sin parallax",
+        "visual": "Patron de nieve, arboles lejanos y luna en cielo frio",
     },
     {
         "path": "bg/FondoPolo.png",
@@ -258,7 +236,7 @@ ENTRIES = [
         "height": 256,
         "final_size": "Mapa 40x28 tiles (320x224 en pantalla)",
         "usage": "MapDefinition del fondo principal del Polo Norte",
-        "visual": "Distribución de nieve, árboles y horizonte polar",
+        "visual": "Distribucion de nieve, arboles y horizonte polar",
     },
     {
         "path": "bg/PistaPolo.png",
@@ -283,9 +261,9 @@ ENTRIES = [
         "resource_line": 'TILESET image_copos_fondo_tile "bg/CoposFondo.png" BEST # Placeholder (Capa copos paralaje polo fondo)',
         "width": 256,
         "height": 256,
-        "final_size": "320x224 píxeles (tilemap de copos en parallax)",
+        "final_size": "320x224 pixeles (tilemap de copos en parallax)",
         "usage": "Capa paralaje de copos y niebla en Polo Norte",
-        "visual": "Copos pequeños blancos sobre fondo semi-transparente",
+        "visual": "Copos pequenos blancos sobre fondo semitransparente",
     },
     {
         "path": "bg/CoposFondo.png",
@@ -296,12 +274,13 @@ ENTRIES = [
         "usage": "MapDefinition del parallax de copos con scroll lento (-1 px/frame)",
         "visual": "Patrones distribuidos de nieve fina para paralaje",
     },
+    # Tilemaps fase 2
     {
         "path": "bg/FondoTejados.png",
         "resource_line": 'TILESET image_fondo_tejados_tile "bg/FondoTejados.png" BEST # Placeholder (Fondo base fase tejados principal)',
         "width": 512,
         "height": 256,
-        "final_size": "320x224 píxeles (tileset 512x256)",
+        "final_size": "320x224 pixeles (tileset 512x256)",
         "usage": "Tileset principal de la ciudad nocturna con tejados y chimeneas",
         "visual": "Tejados rojos/marrones, luna llena, estrellas y luces de casas",
     },
@@ -312,14 +291,14 @@ ENTRIES = [
         "height": 256,
         "final_size": "Mapa 40x28 tiles (320x224 en pantalla)",
         "usage": "Mapa del fondo base de los tejados sin scroll",
-        "visual": "Colocación de tejados, luna y luces distribuidas",
+        "visual": "Colocacion de tejados, luna y luces distribuidas",
     },
     {
         "path": "bg/Nubes.png",
         "resource_line": 'TILESET image_nubes_paralaje_tile "bg/Nubes.png" BEST # Placeholder (Nubes paralaje fase tejados decorativas)',
         "width": 256,
         "height": 256,
-        "final_size": "320x224 píxeles (parallax)",
+        "final_size": "320x224 pixeles (parallax)",
         "usage": "Tileset de nubes para capa de paralaje en fase de tejados",
         "visual": "Nubes blancas suavemente sombreadas sobre fondo transparente",
     },
@@ -332,14 +311,15 @@ ENTRIES = [
         "usage": "MapDefinition de nubes flotantes con desplazamiento -0.5 px/frame",
         "visual": "Patrones de nubes espaciadas para mosaico",
     },
+    # Tilemaps fase 4
     {
         "path": "bg/FondoFiesta.png",
         "resource_line": 'TILESET image_fondo_fiesta_tile "bg/FondoFiesta.png" BEST # Placeholder (Fondo sala fiesta final principal)',
         "width": 512,
         "height": 256,
-        "final_size": "320x224 píxeles (tileset 512x256)",
-        "usage": "Fondo base del salón de fiesta final",
-        "visual": "Sala decorada con guirnaldas y luces cálidas",
+        "final_size": "320x224 pixeles (tileset 512x256)",
+        "usage": "Fondo base del salon de fiesta final",
+        "visual": "Sala decorada con guirnaldas y luces calidas",
     },
     {
         "path": "bg/FondoFiesta.png",
@@ -347,17 +327,17 @@ ENTRIES = [
         "width": 512,
         "height": 256,
         "final_size": "Mapa 40x28 tiles (320x224 en pantalla)",
-        "usage": "Mapa del fondo del salón de celebración",
-        "visual": "Distribución de paredes, adornos y zona central",
+        "usage": "Mapa del fondo del salon de celebracion",
+        "visual": "Distribucion de paredes, adornos y zona central",
     },
     {
         "path": "bg/LucesParpadeo.png",
         "resource_line": 'TILESET image_luces_parpadeo_tile "bg/LucesParpadeo.png" BEST # Placeholder (Capa luces parpadeo fiesta animada)',
         "width": 256,
         "height": 256,
-        "final_size": "320x224 píxeles (overlay de luces)",
+        "final_size": "320x224 pixeles (overlay de luces)",
         "usage": "Capa de luces parpadeantes en la fiesta, anima cada 10 frames",
-        "visual": "Motivos luminosos que se encienden/apagan de forma rítmica",
+        "visual": "Motivos luminosos que se encienden/apagan de forma ritmica",
     },
     {
         "path": "bg/LucesParpadeo.png",
@@ -366,41 +346,42 @@ ENTRIES = [
         "height": 256,
         "final_size": "Mapa 40x28 tiles (overlay de luces)",
         "usage": "MapDefinition de la capa animada de luces de fiesta",
-        "visual": "Distribución de luces sobre el salón para parpadeo sincronizado",
+        "visual": "Distribucion de luces sobre el salon para parpadeo sincronizado",
     },
+    # SFX
     {
         "path": "sfx/snd_regalo_recogido.wav",
         "resource_line": 'WAV snd_regalo_recogido "sfx/snd_regalo_recogido.wav" XGM2 # Placeholder (Sonido recoger regalo polo positivo)',
         "duration": 0.2,
         "usage": "Efecto positivo al recoger un regalo en el Polo Norte",
-        "tone": "Ding metálico corto, limpio y alegre",
+        "tone": "Ding metalico corto, limpio y alegre",
     },
     {
         "path": "sfx/snd_disparo_red.wav",
         "resource_line": 'WAV snd_disparo_red "sfx/snd_disparo_red.wav" XGM2 # Placeholder (Disparo red confeti polo rapido)',
         "duration": 0.1,
         "usage": "Sonido de disparo del confeti en fase Polo Norte",
-        "tone": "Whoosh rápido y suave",
+        "tone": "Whoosh rapido y suave",
     },
     {
         "path": "sfx/snd_obstaculo_golpe.wav",
         "resource_line": 'WAV snd_obstaculo_golpe "sfx/snd_obstaculo_golpe.wav" XGM2 # Placeholder (Golpe contra copo obstaculo suave)',
         "duration": 0.15,
-        "usage": "Impacto al golpear un copo de nieve obstáculo",
+        "usage": "Impacto al golpear un obstaculo de nieve",
         "tone": "Thud de nieve amortiguado",
     },
     {
         "path": "sfx/snd_regalo_disparado.wav",
         "resource_line": 'WAV snd_regalo_disparado "sfx/snd_regalo_disparado.wav" XGM2 # Placeholder (Lanzamiento regalo desde canon tejados)',
         "duration": 0.15,
-        "usage": "Lanzamiento de regalo desde el cañón en los tejados",
+        "usage": "Lanzamiento de regalo desde el canon en los tejados",
         "tone": "Whomp suave de disparo",
     },
     {
         "path": "sfx/snd_entrega_exitosa.wav",
         "resource_line": 'WAV snd_entrega_exitosa "sfx/snd_entrega_exitosa.wav" XGM2 # Placeholder (Regalo entregado en chimenea exitoso)',
         "duration": 0.3,
-        "usage": "Confirmación al acertar una chimenea en fase de entrega",
+        "usage": "Confirmacion al acertar una chimenea en fase de entrega",
         "tone": "Doble campanada brillante estilo ding-dong",
     },
     {
@@ -414,8 +395,8 @@ ENTRIES = [
         "path": "sfx/snd_confeti_choque.wav",
         "resource_line": 'WAV snd_confeti_choque "sfx/snd_confeti_choque.wav" XGM2 # Placeholder (Choque confeti celebracion final alegre)',
         "duration": 0.1,
-        "usage": "Golpe suave de confeti en la celebración final",
-        "tone": "Sonido pequeño y alegre de papel",
+        "usage": "Golpe suave de confeti en la celebracion final",
+        "tone": "Sonido pequeno y alegre de papel",
     },
 ]
 
@@ -525,19 +506,19 @@ def describe_resource(entry: dict) -> str | None:
         prompt = [
             f"[{kind}] {path}",
             " - Tipo de recurso: audio en formato WAV (PCM 8kHz, mono)",
-            f" - Aparición y uso en el juego: {detail}",
-            f" - Duración prevista en el juego: {duration_text}",
+            f" - Aparicion y uso en el juego: {detail}",
+            f" - Duracion prevista en el juego: {duration_text}",
         ]
         prompt.extend(extra_lines)
         prompt.append(
-            " - Prompt IA: Diseña un efecto limpio sin ruido de fondo, listo para XGM2,"
-            f" que encaje con la escena descrita y respete la duración objetivo ({duration_text})."
+            " - Prompt IA: Disena un efecto limpio sin ruido de fondo, listo para XGM2,"
+            f" que encaje con la escena descrita y respete la duracion objetivo ({duration_text})."
         )
         return "\n".join(prompt)
 
     width = entry.get("width", 64)
     height = entry.get("height", 64)
-    final_size = entry.get("final_size") or f"{width}x{height} píxeles"
+    final_size = entry.get("final_size") or f"{width}x{height} pixeles"
     frames = entry.get("frames")
     palette = entry.get("palette")
     visual = entry.get("visual")
@@ -545,21 +526,21 @@ def describe_resource(entry: dict) -> str | None:
     prompt_lines = [
         f"[{kind}] {path}",
         " - Tipo de recurso: imagen/sprite",
-        f" - Aparición y uso en el juego: {detail}",
-        f" - Tamaño final en el juego: {final_size}",
+        f" - Aparicion y uso en el juego: {detail}",
+        f" - Tamano final en el juego: {final_size}",
     ]
 
     if frames:
-        prompt_lines.append(f" - Frames/animación: {frames} frames")
+        prompt_lines.append(f" - Frames/animacion: {frames} frames")
     if palette:
         prompt_lines.append(f" - Paleta/colores previstos: {palette}")
     if visual:
-        prompt_lines.append(f" - Descripción visual: {visual}")
+        prompt_lines.append(f" - Descripcion visual: {visual}")
 
     prompt_lines.append(
-        " - Prompt IA: Genera un gráfico nítido y legible a esa resolución,"
-        f" que represente fielmente: {visual or detail}. Ajusta la composición para el"
-        " contexto descrito, sin bordes ni márgenes vacíos."
+        " - Prompt IA: Genera un grafico nitido y legible a esa resolucion,"
+        f" que represente fielmente: {visual or detail}. Ajusta la composicion para el"
+        " contexto descrito, sin bordes ni margenes vacios."
     )
     return "\n".join(prompt_lines)
 

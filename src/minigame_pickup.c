@@ -2,7 +2,8 @@
  * ═════════════════════════════════════════════════════════════════════════════
  * ARCHIVO: src/minigame_pickup.c
  *
- * Fase 1: Recogida - Paseo cenital con pista de nieve y scroll vertical
+ * Fase 1: Recogida - Paseo cenital con pista de nieve y scroll vertical.
+ * Estado actual: mecanicas acotadas; falta disparo especial definitivo y sprite de regalo lateral.
  * ═════════════════════════════════════════════════════════════════════════════
  */
 
