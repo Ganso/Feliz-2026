@@ -19,6 +19,7 @@
 #define TARGET_GIFTS 15
 #define SCROLL_SPEED 1
 #define FORBIDDEN_PERCENT 10
+#define TRACK_LOOP_PX 480
 
 #define ENEMY_LATERAL_DELAY 30
 #define ENEMY_LATERAL_SPEED 1
@@ -79,9 +80,7 @@ static u8 elfGiftActive[NUM_ELVES];
 static u16 elfRespawnTimer[NUM_ELVES];
 static u8 elfSide[NUM_ELVES];
 static Map *mapTrack;
-static s16 trackHeightPx;
 static s16 trackOffsetY;
-static s16 trackLoopLength;
 static u16 giftsCollected;
 static u16 giftsCharge;
 static u16 frameCounter;
@@ -420,20 +419,6 @@ static void resetSpecialIfReady(void) {
     }
 }
 
-static void clampTrackOffset(void) {
-    if (trackLoopLength <= 0) {
-        trackOffsetY = 0;
-        return;
-    }
-
-    while (trackOffsetY < 0) {
-        trackOffsetY += trackLoopLength;
-    }
-    while (trackOffsetY >= trackLoopLength) {
-        trackOffsetY -= trackLoopLength;
-    }
-}
-
 static void collectGift(void) {
     giftsCollected++;
     giftsCharge++;
@@ -519,8 +504,6 @@ void minigamePickup_init(void) {
 
     gameCore_resetTileIndex();
     trackOffsetY = 0;
-    trackHeightPx = 0;
-    trackLoopLength = 0;
     giftsCollected = 0;
     giftsCharge = 0;
     frameCounter = 0;
@@ -551,24 +534,10 @@ void minigamePickup_init(void) {
     mapTrack = MAP_create(&image_pista_polo_map, BG_B,
         TILE_ATTR_FULL(PAL_COMMON, FALSE, FALSE, FALSE, globalTileIndex));
     globalTileIndex += image_pista_polo_tile.numTile;
-
-    trackHeightPx = (image_pista_polo_map.h > 0)
-        ? (image_pista_polo_map.h << 3) /* 8 px por tile */
-        : SCREEN_HEIGHT;
-    if (trackHeightPx < SCREEN_HEIGHT) trackHeightPx = SCREEN_HEIGHT;
-
-    trackLoopLength = (trackHeightPx > SCREEN_HEIGHT)
-        ? (trackHeightPx - SCREEN_HEIGHT)
-        : SCREEN_HEIGHT;
-    trackOffsetY = trackLoopLength - 1;
+    
+    trackOffsetY = 0;
     if (mapTrack != NULL) {
-        const s16 initialOffset = trackOffsetY % trackHeightPx;
-        MAP_scrollTo(mapTrack, 0, initialOffset);
-        //VDP_setVerticalScroll(BG_B, initialOffset);
-    } else {
-        trackHeightPx = 0;
-        trackLoopLength = 0;
-        trackOffsetY = 0;
+        MAP_scrollTo(mapTrack, 0, trackOffsetY);
     }
 
     snowEffect_init(&snowEffect, &globalTileIndex, 1, -2);
@@ -644,7 +613,9 @@ void minigamePickup_update(void) {
     const s16 scrollStep = ((frameCounter % VERTICAL_SLOW_DIV) == 0) ? SCROLL_SPEED : 0;
     if (scrollStep) {
         trackOffsetY -= scrollStep;
-        clampTrackOffset(); /* envuelve dentro del rango visible del mapa */
+        if (trackOffsetY < 0) {
+            trackOffsetY += TRACK_LOOP_PX;
+        }
         if (mapTrack != NULL) {
             MAP_scrollTo(mapTrack, 0, trackOffsetY);
             //VDP_setVerticalScroll(BG_B, trackOffsetY);

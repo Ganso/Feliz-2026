@@ -9,9 +9,6 @@
 #include "snow_effect.h"
 #include "resources_bg.h"
 
-#define SNOW_WIDTH_PX 320
-#define SNOW_HEIGHT_PX 480
-
 void snowEffect_init(SnowEffect *effect, u32 *tileIndex, s16 angleStep, s16 verticalStep) {
     if (effect == NULL || tileIndex == NULL) return;
 
@@ -21,11 +18,12 @@ void snowEffect_init(SnowEffect *effect, u32 *tileIndex, s16 angleStep, s16 vert
     effect->angleStep = 0;
     effect->verticalStep = 0;
     effect->map = NULL;
-    effect->widthPx = SNOW_WIDTH_PX;
-    effect->heightPx = SNOW_HEIGHT_PX;
+    effect->widthPx = 0;
+    effect->heightPx = 0;
 
     effect->angleStep = angleStep;
     effect->verticalStep = verticalStep;
+    effect->offsetY = verticalStep;   /* Arrancamos ya desplazados para evitar un wrap brusco inicial */
 
     VDP_loadTileSet(&image_primer_plano_nieve_tile, *tileIndex, CPU);
     effect->map = MAP_create(&image_primer_plano_nieve_map, BG_A,
@@ -33,7 +31,20 @@ void snowEffect_init(SnowEffect *effect, u32 *tileIndex, s16 angleStep, s16 vert
     *tileIndex += image_primer_plano_nieve_tile.numTile;
 
     if (effect->map != NULL) {
-        MAP_scrollTo(effect->map, 0, 0);
+        effect->widthPx = effect->map->w << 7;   /* 128 px por bloque */
+        effect->heightPx = effect->map->h << 7;
+        if (effect->widthPx == 0) effect->widthPx = SCREEN_WIDTH;
+        if (effect->heightPx == 0) effect->heightPx = SCREEN_HEIGHT;
+
+        /* Aplicamos el scroll inicial ya normalizado al rango del mapa */
+        s32 wrapWidth = effect->widthPx;
+        s32 wrapHeight = effect->heightPx;
+        s32 posX = effect->offsetX % wrapWidth;
+        if (posX < 0) posX += wrapWidth;
+        s32 posY = effect->offsetY % wrapHeight;
+        if (posY < 0) posY += wrapHeight;
+
+        MAP_scrollTo(effect->map, (u32)posX, (u32)posY);
     }
 }
 
@@ -45,10 +56,15 @@ void snowEffect_update(SnowEffect *effect, u16 frameCounter) {
     effect->offsetX = sinFix16(effect->angle);
     effect->offsetY += effect->verticalStep;
 
-    s32 posX = effect->offsetX % SNOW_WIDTH_PX;
-    if (posX < 0) posX += SNOW_WIDTH_PX;
-    s32 posY = effect->offsetY % SNOW_HEIGHT_PX;
-    if (posY < 0) posY += SNOW_HEIGHT_PX;
+    /* Ajustar scroll a rangos válidos del mapa (positivo y dentro del tamaño) */
+    s32 wrapWidth = (effect->widthPx > 0) ? effect->widthPx : SCREEN_WIDTH;
+    s32 wrapHeight = (effect->heightPx > 0) ? effect->heightPx : SCREEN_HEIGHT;
+
+    s32 posX = effect->offsetX % wrapWidth;
+    if (posX < 0) posX += wrapWidth;
+    s32 posY = effect->offsetY % wrapHeight;
+    if (posY < 0) posY += wrapHeight;
 
     MAP_scrollTo(effect->map, (u32)posX, (u32)posY);
 }
+
