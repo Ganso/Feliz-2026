@@ -29,7 +29,7 @@
 #define ENEMY_HITBOX_HEIGHT 10
 #define ELF_SIZE 32
 #define ELF_MARK_SIZE 16
-#define ELF_MARK_VISIBLE_MIN_Y 60       /* y inferior mínima para mostrar X (arriba) */
+#define ELF_MARK_VISIBLE_MIN_Y 150       /* y inferior mínima para mostrar X (arriba) */
 #define ELF_MARK_VISIBLE_MAX_Y 210      /* y inferior máxima para mostrar X (abajo) */
 #define ELF_MARK_SCREEN_MARGIN_PERCENT 20
 #define ELF_SHADOW_MIN_DEPTH SPR_MAX_DEPTH
@@ -155,7 +155,7 @@ static void showElfMark(u8 index) {
 
     if (elfMarkSprites[index] == NULL) {
         elfMarkSprites[index] = SPR_addSpriteSafe(&sprite_marca_x, posX, posY,
-            TILE_ATTR(PAL_EFFECT, FALSE, FALSE, FALSE));
+            TILE_ATTR(PAL_PLAYER, FALSE, FALSE, FALSE));
     }
 
     if (elfMarkSprites[index]) {
@@ -553,7 +553,7 @@ void minigamePickup_init(void) {
         TILE_ATTR_FULL(PAL_COMMON, FALSE, FALSE, FALSE, globalTileIndex));
     globalTileIndex += image_pista_polo_tile.numTile;
 
-    trackHeightPx = 224;
+    trackHeightPx = 240;
     trackMaxScroll = trackHeightPx - 1;
     if (trackMaxScroll < 0) trackMaxScroll = 0;
     trackOffsetY = trackMaxScroll;

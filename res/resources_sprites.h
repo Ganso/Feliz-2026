@@ -1,4 +1,5 @@
 #include <genesis.h>
+
 #ifndef _RES_RESOURCES_SPRITES_H_
 #define _RES_RESOURCES_SPRITES_H_
 
