@@ -61,7 +61,9 @@ static void traceFunc(const char *funcName);
 #define SANTA_HITBOX_WIDTH (SANTA_WIDTH - 2 * SANTA_HITBOX_PADDING)
 #define SANTA_VERTICAL_SPEED 2
 #define TRACK_HEIGHT_PX 512
-#define VERTICAL_SLOW_DIV 2  /* factor de retardo vertical (50%) */
+#define SCROLL_SPEED_MIN FIX16(0.5)      /* equivalente a VERTICAL_SLOW_DIV=2 */
+#define SCROLL_SPEED_MAX FIX16(1.0)      /* equivalente a VERTICAL_SLOW_DIV=1 */
+#define GIFTS_FOR_MAX_SCROLL_SPEED 5
 #define HUD_MARGIN_PX 3
 #define DEPTH_SANTA SPR_MIN_DEPTH
 #define DEPTH_HUD (SPR_MIN_DEPTH + 50)      /* HUD muy delante para no quedar tapado */
@@ -109,7 +111,10 @@ static u16 elfRespawnTimer[NUM_ELVES];
 static u8 elfSide[NUM_ELVES];
 static Map *mapTrack;
 static s16 trackOffsetY;
+static fix16 scrollSpeedPerFrame;
+static fix16 scrollAccumulator;
 static u16 giftsCollected;
+static u16 maxGiftsCollected;
 static u16 giftsCharge;
 static Sprite* giftCounterSpriteFirstRow;
 static Sprite* giftCounterSpriteSecondRow;
@@ -166,6 +171,7 @@ static void clearEnemiesOnTreeCollision(void);
 static void clearElvesOnTreeCollision(void);
 static void pauseSantaAnimation(void);
 static void resumeSantaAnimation(void);
+static void updateScrollSpeed(void);
 
 /**
  * @brief Comprueba un rango horizontal y registra errores si es inválido.
@@ -695,12 +701,49 @@ static void updateGiftCounter(void) {
     kprintf("[DEBUG HUD] counter top=%u bottom=%u gifts=%u", firstRowFrame, secondRowFrame, giftsCollected);
 }
 
+/** @brief Log de depuracion para el estado del scroll vertical. */
+static void debugPrintScrollState(const char* context, s16 scrollStep) {
+    s32 speedInt = F16_toInt(scrollSpeedPerFrame);
+    s32 speedFrac = ((u32)(scrollSpeedPerFrame & 0xFFFF) * 1000) / 65536;
+    s32 accInt = F16_toInt(scrollAccumulator);
+    s32 accFrac = ((u32)(scrollAccumulator & 0xFFFF) * 1000) / 65536;
+
+    kprintf("[DEBUG SCROLL] %s speed=%ld.%03ld acc=%ld.%03ld step=%d gifts=%u max=%u frame=%u",
+        (context != NULL) ? context : "unknown",
+        (long)speedInt, (long)speedFrac,
+        (long)accInt, (long)accFrac,
+        scrollStep,
+        giftsCollected, maxGiftsCollected,
+        frameCounter);
+}
+
+/** @brief Ajusta la velocidad vertical segun el maximo de regalos recogidos. */
+static void updateScrollSpeed(void) {
+    TRACE_FUNC();
+    u16 giftsForSpeed = maxGiftsCollected;
+    if (giftsForSpeed > GIFTS_FOR_MAX_SCROLL_SPEED) {
+        giftsForSpeed = GIFTS_FOR_MAX_SCROLL_SPEED;
+    }
+
+    const fix16 speedRange = SCROLL_SPEED_MAX - SCROLL_SPEED_MIN;
+    const fix16 scaledRange = F16_mul(speedRange, FIX16(giftsForSpeed));
+    scrollSpeedPerFrame = SCROLL_SPEED_MIN + F16_div(scaledRange, FIX16(GIFTS_FOR_MAX_SCROLL_SPEED));
+    if (scrollSpeedPerFrame < SCROLL_SPEED_MIN) scrollSpeedPerFrame = SCROLL_SPEED_MIN;
+    if (scrollSpeedPerFrame > SCROLL_SPEED_MAX) scrollSpeedPerFrame = SCROLL_SPEED_MAX;
+
+    debugPrintScrollState("updateSpeed", 0);
+}
+
 /** @brief Procesa la recogida de un regalo y avanza la misión. */
 static void collectGift(void) {
     TRACE_FUNC();
     XGM2_playPCM(snd_regalo_recogido, sizeof(snd_regalo_recogido), SOUND_PCM_CH_AUTO);
     giftsCollected++;
     if (giftsCollected > GIFT_COUNTER_MAX) giftsCollected = GIFT_COUNTER_MAX;
+    if (giftsCollected > maxGiftsCollected) {
+        maxGiftsCollected = giftsCollected;
+        updateScrollSpeed();
+    }
     giftsCharge++;
     kprintf("[DEBUG GIFT] collectGift giftsCollected=%u giftsCharge=%u", giftsCollected, giftsCharge);
     resetSpecialIfReady();
@@ -1030,10 +1073,13 @@ void minigamePickup_init(void) {
     VDP_setPlaneSize(64, 64, TRUE);
     gameCore_resetTileIndex();
     giftsCollected = 0;
+    maxGiftsCollected = 0;
     giftsCharge = 0;
+    frameCounter = 0;
+    scrollAccumulator = FIX16(0);
+    updateScrollSpeed();
     giftCounterSpriteFirstRow = NULL;
     giftCounterSpriteSecondRow = NULL;
-    frameCounter = 0;
     phaseChangeRequested = FALSE;
     recoveringFromTree = FALSE;
     treeCollisionBlinkFrames = 0;
@@ -1216,8 +1262,16 @@ void minigamePickup_update(void) {
     const s16 santaHitH = SANTA_HEIGHT;
 
     /* Scroll del fondo hacia abajo (caida) */
-    const s16 scrollStep = ((frameCounter % VERTICAL_SLOW_DIV) == 0) ? SCROLL_SPEED : 0;
-    if (scrollStep) {
+    scrollAccumulator += scrollSpeedPerFrame;
+    s16 scrollStep = 0;
+    while (scrollAccumulator >= FIX16(1)) {
+        scrollStep++;
+        scrollAccumulator -= FIX16(1);
+    }
+    if ((frameCounter & 31) == 0) {
+        debugPrintScrollState("frame", scrollStep);
+    }
+    if (scrollStep > 0) {
         trackOffsetY -= scrollStep;
         if (trackOffsetY < 0) {
             trackOffsetY += TRACK_LOOP_PX;
