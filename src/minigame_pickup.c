@@ -21,15 +21,15 @@ static void traceFunc(const char *funcName);
 #define TRACE_FUNC() traceFunc(__func__)
 
 #define NUM_TREES 1
-#define NUM_ELVES  2
-#define NUM_ENEMIES 2
+#define NUM_ELVES  4
+#define NUM_ENEMIES 3
 #define GIFTS_FOR_SPECIAL 3
 #define TARGET_GIFTS 10
 #define SCROLL_SPEED 1
 #define FORBIDDEN_PERCENT 10
 #define TRACK_LOOP_PX 512
 
-#define ENEMY_LATERAL_DELAY 30
+#define ENEMY_LATERAL_DELAY 10
 #define ENEMY_LATERAL_SPEED 1
 #define ENEMY_ESCAPE_SPEED 3
 
@@ -61,9 +61,8 @@ static void traceFunc(const char *funcName);
 #define SANTA_HITBOX_WIDTH (SANTA_WIDTH - 2 * SANTA_HITBOX_PADDING)
 #define SANTA_VERTICAL_SPEED 2
 #define TRACK_HEIGHT_PX 512
-#define SCROLL_SPEED_MIN FIX16(0.5)      /* equivalente a VERTICAL_SLOW_DIV=2 */
-#define SCROLL_SPEED_MAX FIX16(1.0)      /* equivalente a VERTICAL_SLOW_DIV=1 */
-#define GIFTS_FOR_MAX_SCROLL_SPEED 5
+#define SCROLL_SPEED_MIN FIX16(0.5)
+#define SCROLL_SPEED_MAX FIX16(1.5)
 #define HUD_MARGIN_PX 3
 #define DEPTH_SANTA SPR_MIN_DEPTH
 #define DEPTH_HUD (SPR_MIN_DEPTH + 50)      /* HUD muy delante para no quedar tapado */
@@ -122,7 +121,6 @@ static u16 frameCounter;
 static u8 phaseChangeRequested;
 static u8 musicStarted;
 static u16 musicStartDelayFrames;
-static u8 waitingMusicFadeIn;
 static u8 santaAnimationPaused;
 
 static s16 leftLimit;
@@ -152,7 +150,7 @@ static void traceFunc(const char *funcName) {
     if (funcName == NULL) return;
     if (lastTraceFunc != funcName) {
         lastTraceFunc = funcName;
-        //kprintf("[TRACE] %s", funcName); /* Descomentar para activar trazas */
+        kprintf("[TRACE] %s", funcName);
     }
 }
 
@@ -171,7 +169,6 @@ static void clearEnemiesOnTreeCollision(void);
 static void clearElvesOnTreeCollision(void);
 static void pauseSantaAnimation(void);
 static void resumeSantaAnimation(void);
-static void updateScrollSpeed(void);
 
 /**
  * @brief Comprueba un rango horizontal y registra errores si es inválido.
@@ -490,16 +487,16 @@ static void updateElfGift(u8 index, fix16 progress) {
 
     const s16 dx = elfMarkPosX[index] - elfShadowStartX[index];
     const s16 dy = elfMarkPosY[index] - elfShadowStartY[index];
-    fix16 baseXf = FIX16(elfShadowStartX[index]) + F16_mul(FIX16(dx), progress);
-    fix16 baseYf = FIX16(elfShadowStartY[index]) + F16_mul(FIX16(dy), progress);
+    fix16 baseXf = FIX16(elfShadowStartX[index]) + fix16Mul(FIX16(dx), progress);
+    fix16 baseYf = FIX16(elfShadowStartY[index]) + fix16Mul(FIX16(dy), progress);
 
     /* Arco parabólico: altura máxima GIFT_ARC_HEIGHT en t=0.5 */
     fix16 t = progress;
-    fix16 arcFactor = F16_mul(FIX16(4), F16_mul(t, (FIX16(1) - t)));
-    fix16 arcOffsetF = F16_mul(FIX16(GIFT_ARC_HEIGHT), arcFactor);
+    fix16 arcFactor = fix16Mul(FIX16(4), fix16Mul(t, (FIX16(1) - t)));
+    fix16 arcOffsetF = fix16Mul(FIX16(GIFT_ARC_HEIGHT), arcFactor);
 
-    s16 posX = F16_toInt(baseXf + FIX16(0.5));
-    s16 posY = F16_toInt((baseYf - arcOffsetF) + FIX16(0.5));
+    s16 posX = fix16ToInt(baseXf + FIX16(0.5));
+    s16 posY = fix16ToInt((baseYf - arcOffsetF) + FIX16(0.5));
     SPR_setPosition(elfGiftSprites[index], posX, posY);
     elfGiftPosX[index] = posX;
     elfGiftPosY[index] = posY;
@@ -557,10 +554,10 @@ static void updateElfShadow(u8 index, fix16 progress) {
 
     const s16 dx = elfMarkPosX[index] - elfShadowStartX[index];
     const s16 dy = elfMarkPosY[index] - elfShadowStartY[index];
-    fix16 offsetX = F16_mul(FIX16(dx), progress);
-    fix16 offsetY = F16_mul(FIX16(dy), progress);
-    s16 newX = elfShadowStartX[index] + F16_toInt(offsetX + FIX16(0.5));
-    s16 newY = elfShadowStartY[index] + F16_toInt(offsetY + FIX16(0.5));
+    fix16 offsetX = fix16Mul(FIX16(dx), progress);
+    fix16 offsetY = fix16Mul(FIX16(dy), progress);
+    s16 newX = elfShadowStartX[index] + fix16ToInt(offsetX + FIX16(0.5));
+    s16 newY = elfShadowStartY[index] + fix16ToInt(offsetY + FIX16(0.5));
     SPR_setPosition(elfShadowSprites[index], newX, newY);
     elfShadowPosX[index] = newX;
     elfShadowPosY[index] = newY;
@@ -623,7 +620,7 @@ static void updateElfMark(u8 index, s16 santaHitX, s16 santaHitY, s16 santaHitW,
     fix16 progress = FIX16(0);
     if (travelSpan > 0) {
         progress = FIX16(elfBottom - minVisibleY);
-        progress = F16_div(progress, FIX16(travelSpan));
+        progress = fix16Div(progress, FIX16(travelSpan));
     }
     if (progress < FIX16(0)) progress = FIX16(0);
     if (progress > FIX16(1)) progress = FIX16(1);
@@ -632,7 +629,7 @@ static void updateElfMark(u8 index, s16 santaHitX, s16 santaHitY, s16 santaHitW,
     updateElfGift(index, progress);
 
     if (elfGiftActive[index] && elfGiftHasLanded[index]) {
-        if (checkCollision(santaHitX, santaHitY, santaHitW, santaHitH,
+        if (checkCollision(santa.x, santa.y, SANTA_WIDTH, SANTA_HEIGHT, // Al recoger regalos, todo el sprite cuenta como hitbox para que sea más fácil
                 elfGiftPosX[index], elfGiftPosY[index], GIFT_SIZE, GIFT_SIZE)) {
             kprintf("[DEBUG GIFT] collect landed idx=%d giftPos=(%d,%d) santaHit=(%d,%d,%d,%d)", index,
                 elfGiftPosX[index], elfGiftPosY[index], santaHitX, santaHitY, santaHitW, santaHitH);
@@ -703,9 +700,9 @@ static void updateGiftCounter(void) {
 
 /** @brief Log de depuracion para el estado del scroll vertical. */
 static void debugPrintScrollState(const char* context, s16 scrollStep) {
-    s32 speedInt = F16_toInt(scrollSpeedPerFrame);
+    s32 speedInt = fix16ToInt(scrollSpeedPerFrame);
     s32 speedFrac = ((u32)(scrollSpeedPerFrame & 0xFFFF) * 1000) / 65536;
-    s32 accInt = F16_toInt(scrollAccumulator);
+    s32 accInt = fix16ToInt(scrollAccumulator);
     s32 accFrac = ((u32)(scrollAccumulator & 0xFFFF) * 1000) / 65536;
 
     kprintf("[DEBUG SCROLL] %s speed=%ld.%03ld acc=%ld.%03ld step=%d gifts=%u max=%u frame=%u",
@@ -717,23 +714,6 @@ static void debugPrintScrollState(const char* context, s16 scrollStep) {
         frameCounter);
 }
 
-/** @brief Ajusta la velocidad vertical segun el maximo de regalos recogidos. */
-static void updateScrollSpeed(void) {
-    TRACE_FUNC();
-    u16 giftsForSpeed = maxGiftsCollected;
-    if (giftsForSpeed > GIFTS_FOR_MAX_SCROLL_SPEED) {
-        giftsForSpeed = GIFTS_FOR_MAX_SCROLL_SPEED;
-    }
-
-    const fix16 speedRange = SCROLL_SPEED_MAX - SCROLL_SPEED_MIN;
-    const fix16 scaledRange = F16_mul(speedRange, FIX16(giftsForSpeed));
-    scrollSpeedPerFrame = SCROLL_SPEED_MIN + F16_div(scaledRange, FIX16(GIFTS_FOR_MAX_SCROLL_SPEED));
-    if (scrollSpeedPerFrame < SCROLL_SPEED_MIN) scrollSpeedPerFrame = SCROLL_SPEED_MIN;
-    if (scrollSpeedPerFrame > SCROLL_SPEED_MAX) scrollSpeedPerFrame = SCROLL_SPEED_MAX;
-
-    debugPrintScrollState("updateSpeed", 0);
-}
-
 /** @brief Procesa la recogida de un regalo y avanza la misión. */
 static void collectGift(void) {
     TRACE_FUNC();
@@ -742,7 +722,6 @@ static void collectGift(void) {
     if (giftsCollected > GIFT_COUNTER_MAX) giftsCollected = GIFT_COUNTER_MAX;
     if (giftsCollected > maxGiftsCollected) {
         maxGiftsCollected = giftsCollected;
-        updateScrollSpeed();
     }
     giftsCharge++;
     kprintf("[DEBUG GIFT] collectGift giftsCollected=%u giftsCharge=%u", giftsCollected, giftsCharge);
@@ -810,7 +789,6 @@ static void beginTreeCollision(SimpleActor *tree) {
     recoveringFromTree = TRUE;
     treeCollisionBlinkFrames = TREE_COLLISION_BLINK_FRAMES;
     treeCollisionVisible = TRUE;
-    waitingMusicFadeIn = FALSE;
     pauseSantaAnimation();
 
     clearEnemiesOnTreeCollision();
@@ -821,8 +799,7 @@ static void beginTreeCollision(SimpleActor *tree) {
         updateGiftCounter();
     }
 
-    XGM2_setFMVolume(0);
-    XGM2_setPSGVolume(0);
+    XGM2_pause();
     XGM2_playPCM(snd_obstaculo_golpe, sizeof(snd_obstaculo_golpe), SOUND_PCM_CH_AUTO);
     setTreeCollisionVisibility(TRUE);
 }
@@ -847,12 +824,7 @@ static void endTreeCollisionRecovery(void) {
         SPR_setVisibility(santa.sprite, VISIBLE);
     }
 
-    XGM2_setFMVolume(0);
-    XGM2_setPSGVolume(0);
-    XGM2_setFMVolume(MUSIC_FM_VOLUME);
-    XGM2_setPSGVolume(MUSIC_PSG_VOLUME);
-    XGM2_fadeIn(60);
-    waitingMusicFadeIn = TRUE;
+    XGM2_resume();
     XGM2_playPCM(snd_santa_hohoho, sizeof(snd_santa_hohoho), SOUND_PCM_CH_AUTO);
 
     for (u8 i = 0; i < NUM_ENEMIES; i++) {
@@ -884,14 +856,9 @@ static void updateTreeCollisionRecovery(void) {
         return;
     }
 
-    if (waitingMusicFadeIn) {
-        if (!XGM2_isProcessingFade()) {
-            waitingMusicFadeIn = FALSE;
-            resumeSantaAnimation();
-            recoveringFromTree = FALSE;
-        }
-        return;
-    }
+    resumeSantaAnimation();
+    recoveringFromTree = FALSE;
+    return;
 }
 
 /**
@@ -1077,7 +1044,6 @@ void minigamePickup_init(void) {
     giftsCharge = 0;
     frameCounter = 0;
     scrollAccumulator = FIX16(0);
-    updateScrollSpeed();
     giftCounterSpriteFirstRow = NULL;
     giftCounterSpriteSecondRow = NULL;
     phaseChangeRequested = FALSE;
@@ -1091,8 +1057,8 @@ void minigamePickup_init(void) {
     enemyEscapeTargetY = 0;
     musicStarted = FALSE;
     musicStartDelayFrames = MUSIC_START_DELAY_FRAMES;
-    waitingMusicFadeIn = FALSE;
     santaAnimationPaused = FALSE;
+    scrollSpeedPerFrame = SCROLL_SPEED_MAX;
 
     leftLimit = (SCREEN_WIDTH * FORBIDDEN_PERCENT) / 100;
     rightLimit = SCREEN_WIDTH - leftLimit;
@@ -1102,7 +1068,7 @@ void minigamePickup_init(void) {
     santaInertia.accel = 1;
     santaInertia.friction = 1;
     santaInertia.frictionDelay = 3; /* frena cada 3 frames para aumentar la inercia */
-    santaInertia.maxVelocity = 4;
+    santaInertia.maxVelocity = 6;
 
     if (image_pista_polo_pal.data) {
         PAL_setPalette(PAL_COMMON, image_pista_polo_pal.data, CPU);
@@ -1126,7 +1092,7 @@ void minigamePickup_init(void) {
     }
     SYS_doVBlankProcess();
 
-    snowEffect_init(&snowEffect, &globalTileIndex, 1, -2);
+    snowEffect_init(&snowEffect, &globalTileIndex, 1, -4);
 
     santaStartX = leftLimit + (playableWidth / 4); /* centro aproximado de la mitad izquierda */
     santaStartY = santaMaxY;
@@ -1202,9 +1168,6 @@ void minigamePickup_init(void) {
 void minigamePickup_update(void) {
     TRACE_FUNC();
     startMusicAfterHoHoHo();
-    if (musicStarted && !recoveringFromTree && !waitingMusicFadeIn) {
-        audio_ensure_phase1_playing();
-    }
     updateTreeCollisionRecovery();
     if (recoveringFromTree) {
         frameCounter++;

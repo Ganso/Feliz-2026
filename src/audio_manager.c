@@ -49,11 +49,11 @@ void audio_stop_music(void) {
     XGM2_stop();
 }
 
-void audio_ensure_phase1_playing(void) {
-    /* Sin API para consultar estado; por si acaso reestablecemos volúmenes del loop de fase 1 */
-    XGM2_setFMVolume(70);
-    XGM2_setPSGVolume(100);
-}
+// void audio_ensure_phase1_playing(void) {
+//     /* Sin API para consultar estado; por si acaso reestablecemos volúmenes del loop de fase 1 */
+//     XGM2_setFMVolume(70);
+//     XGM2_setPSGVolume(100);
+// }
 
 /**
  * @brief Reproduce un track concreto y bloquea el flujo para probar audio.
