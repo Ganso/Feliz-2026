@@ -24,7 +24,7 @@ enum {
 };
 
 /* Variables globales */
-static u8 currentPhase = PHASE_BELLS;
+static u8 currentPhase = PHASE_PICKUP;
 
 /**
  * @brief Punto de entrada principal del cartucho.

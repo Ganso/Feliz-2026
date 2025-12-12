@@ -24,7 +24,7 @@ static void traceFunc(const char *funcName);
 #define NUM_ELVES  2
 #define NUM_ENEMIES 2
 #define GIFTS_FOR_SPECIAL 3
-#define TARGET_GIFTS 15
+#define TARGET_GIFTS 10
 #define SCROLL_SPEED 1
 #define FORBIDDEN_PERCENT 10
 #define TRACK_LOOP_PX 512
@@ -47,7 +47,11 @@ static void traceFunc(const char *funcName);
 #define ELF_RESPAWN_DELAY_MAX_FRAMES 300  /* 5s a 60fps */
 #define GIFT_SIZE 32
 #define GIFT_ARC_HEIGHT 50
-#define GIFT_COUNTER_MAX 5
+#define GIFT_COUNTER_ROW_SIZE 5
+#define GIFT_COUNTER_SPRITE_WIDTH 128
+#define GIFT_COUNTER_ROW_OFFSET_Y 20
+#define GIFT_COUNTER_SECOND_ROW_OFFSET_X 10
+#define GIFT_COUNTER_MAX 10
 #define MUSIC_START_DELAY_FRAMES 60
 #define MUSIC_FM_VOLUME 70
 #define MUSIC_PSG_VOLUME 100
@@ -60,7 +64,7 @@ static void traceFunc(const char *funcName);
 #define VERTICAL_SLOW_DIV 2  /* factor de retardo vertical (50%) */
 #define HUD_MARGIN_PX 3
 #define DEPTH_SANTA SPR_MIN_DEPTH
-#define DEPTH_HUD (SPR_MIN_DEPTH + 1)
+#define DEPTH_HUD (SPR_MIN_DEPTH + 50)      /* HUD muy delante para no quedar tapado */
 #define DEPTH_ACTORS_START (SPR_MIN_DEPTH + 2)
 #define TREE_COLLISION_BLINK_FRAMES 120
 #define TREE_COLLISION_BLINK_INTERVAL_FRAMES 6
@@ -107,12 +111,14 @@ static Map *mapTrack;
 static s16 trackOffsetY;
 static u16 giftsCollected;
 static u16 giftsCharge;
-static Sprite* giftCounterSprite;
+static Sprite* giftCounterSpriteFirstRow;
+static Sprite* giftCounterSpriteSecondRow;
 static u16 frameCounter;
 static u8 phaseChangeRequested;
 static u8 musicStarted;
 static u16 musicStartDelayFrames;
 static u8 waitingMusicFadeIn;
+static u8 santaAnimationPaused;
 
 static s16 leftLimit;
 static s16 rightLimit;
@@ -141,7 +147,7 @@ static void traceFunc(const char *funcName) {
     if (funcName == NULL) return;
     if (lastTraceFunc != funcName) {
         lastTraceFunc = funcName;
-        kprintf("[TRACE] %s", funcName);
+        //kprintf("[TRACE] %s", funcName); /* Descomentar para activar trazas */
     }
 }
 
@@ -158,6 +164,8 @@ static void endEnemyStealSequence(void);
 static void startMusicAfterHoHoHo(void);
 static void clearEnemiesOnTreeCollision(void);
 static void clearElvesOnTreeCollision(void);
+static void pauseSantaAnimation(void);
+static void resumeSantaAnimation(void);
 
 /**
  * @brief Comprueba un rango horizontal y registra errores si es inválido.
@@ -651,15 +659,40 @@ static void requestPhaseChange(void) {
 /** @brief Refleja en el HUD el contador de regalos y carga especial. */
 static void updateGiftCounter(void) {
     TRACE_FUNC();
-    if (giftCounterSprite == NULL) return;
-    u16 animIndex = giftsCollected;
-    if (animIndex > GIFT_COUNTER_MAX) animIndex = GIFT_COUNTER_MAX;
-    SPR_setAnim(giftCounterSprite, 0);
-    SPR_setFrame(giftCounterSprite, animIndex);
-    SPR_setVisibility(giftCounterSprite, VISIBLE);
-    SPR_setPosition(giftCounterSprite, HUD_MARGIN_PX, SCREEN_HEIGHT - 32 - HUD_MARGIN_PX);
-    SPR_setDepth(giftCounterSprite, DEPTH_HUD);
-    kprintf("[DEBUG HUD] counter anim=%u gifts=%u", animIndex, giftsCollected);
+    if ((giftCounterSpriteFirstRow == NULL) && (giftCounterSpriteSecondRow == NULL)) return;
+
+    const s16 baseX = SCREEN_WIDTH - HUD_MARGIN_PX - GIFT_COUNTER_SPRITE_WIDTH - 8;
+    const s16 baseY = SCREEN_HEIGHT - GIFT_SIZE - HUD_MARGIN_PX;
+
+    u16 cappedGifts = giftsCollected;
+    if (cappedGifts > GIFT_COUNTER_MAX) cappedGifts = GIFT_COUNTER_MAX;
+
+    u16 firstRowFrame = cappedGifts;
+    if (firstRowFrame > GIFT_COUNTER_ROW_SIZE) firstRowFrame = GIFT_COUNTER_ROW_SIZE;
+
+    u16 secondRowFrame = 0;
+    if (cappedGifts > GIFT_COUNTER_ROW_SIZE) {
+        secondRowFrame = cappedGifts - GIFT_COUNTER_ROW_SIZE;
+        if (secondRowFrame > GIFT_COUNTER_ROW_SIZE) secondRowFrame = GIFT_COUNTER_ROW_SIZE;
+    }
+
+    if (giftCounterSpriteFirstRow) {
+        SPR_setAnim(giftCounterSpriteFirstRow, 0);
+        SPR_setFrame(giftCounterSpriteFirstRow, firstRowFrame);
+        SPR_setVisibility(giftCounterSpriteFirstRow, VISIBLE);
+        SPR_setPosition(giftCounterSpriteFirstRow, baseX, baseY - GIFT_COUNTER_ROW_OFFSET_Y);
+        SPR_setDepth(giftCounterSpriteFirstRow, DEPTH_HUD + 1);
+    }
+
+    if (giftCounterSpriteSecondRow) {
+        SPR_setAnim(giftCounterSpriteSecondRow, 0);
+        SPR_setFrame(giftCounterSpriteSecondRow, secondRowFrame);
+        SPR_setVisibility(giftCounterSpriteSecondRow, VISIBLE);
+        SPR_setPosition(giftCounterSpriteSecondRow, baseX + GIFT_COUNTER_SECOND_ROW_OFFSET_X, baseY);
+        SPR_setDepth(giftCounterSpriteSecondRow, DEPTH_HUD);
+    }
+
+    kprintf("[DEBUG HUD] counter top=%u bottom=%u gifts=%u", firstRowFrame, secondRowFrame, giftsCollected);
 }
 
 /** @brief Procesa la recogida de un regalo y avanza la misión. */
@@ -704,6 +737,24 @@ static void setTreeCollisionVisibility(u8 visible) {
     }
 }
 
+/** @brief Congela la animacion automatica del sprite de Santa. */
+static void pauseSantaAnimation(void) {
+    if (santaAnimationPaused) return;
+    santaAnimationPaused = TRUE;
+    if (santa.sprite) {
+        SPR_setAutoAnimation(santa.sprite, FALSE);
+    }
+}
+
+/** @brief Reanuda la animacion automatica del sprite de Santa. */
+static void resumeSantaAnimation(void) {
+    if (!santaAnimationPaused) return;
+    santaAnimationPaused = FALSE;
+    if (santa.sprite) {
+        SPR_setAutoAnimation(santa.sprite, TRUE);
+    }
+}
+
 /**
  * @brief Inicia el estado de colisión con un árbol.
  * @param tree Árbol con el que colisionó Santa.
@@ -717,6 +768,7 @@ static void beginTreeCollision(SimpleActor *tree) {
     treeCollisionBlinkFrames = TREE_COLLISION_BLINK_FRAMES;
     treeCollisionVisible = TRUE;
     waitingMusicFadeIn = FALSE;
+    pauseSantaAnimation();
 
     clearEnemiesOnTreeCollision();
     clearElvesOnTreeCollision();
@@ -792,6 +844,7 @@ static void updateTreeCollisionRecovery(void) {
     if (waitingMusicFadeIn) {
         if (!XGM2_isProcessingFade()) {
             waitingMusicFadeIn = FALSE;
+            resumeSantaAnimation();
             recoveringFromTree = FALSE;
         }
         return;
@@ -978,7 +1031,8 @@ void minigamePickup_init(void) {
     gameCore_resetTileIndex();
     giftsCollected = 0;
     giftsCharge = 0;
-    giftCounterSprite = NULL;
+    giftCounterSpriteFirstRow = NULL;
+    giftCounterSpriteSecondRow = NULL;
     frameCounter = 0;
     phaseChangeRequested = FALSE;
     recoveringFromTree = FALSE;
@@ -992,6 +1046,7 @@ void minigamePickup_init(void) {
     musicStarted = FALSE;
     musicStartDelayFrames = MUSIC_START_DELAY_FRAMES;
     waitingMusicFadeIn = FALSE;
+    santaAnimationPaused = FALSE;
 
     leftLimit = (SCREEN_WIDTH * FORBIDDEN_PERCENT) / 100;
     rightLimit = SCREEN_WIDTH - leftLimit;
@@ -1027,7 +1082,7 @@ void minigamePickup_init(void) {
 
     snowEffect_init(&snowEffect, &globalTileIndex, 1, -2);
 
-    santaStartX = leftLimit + ((playableWidth * 3) / 4); /* 75% para dejar hueco al marcador */
+    santaStartX = leftLimit + (playableWidth / 4); /* centro aproximado de la mitad izquierda */
     santaStartY = santaMaxY;
     santa.x = santaStartX;
     santa.y = santaStartY;
@@ -1038,17 +1093,35 @@ void minigamePickup_init(void) {
         TILE_ATTR(PAL_PLAYER, FALSE, FALSE, FALSE));
     SPR_setAnim(santa.sprite, 0);
     SPR_setDepth(santa.sprite, DEPTH_SANTA);
+    SPR_setAutoAnimation(santa.sprite, TRUE);
     XGM2_playPCM(snd_santa_hohoho, sizeof(snd_santa_hohoho), SOUND_PCM_CH_AUTO);
 
-    giftCounterSprite = SPR_addSpriteSafe(&sprite_icono_regalo, HUD_MARGIN_PX, SCREEN_HEIGHT - 32 - HUD_MARGIN_PX,
+    const s16 giftBaseX = SCREEN_WIDTH - HUD_MARGIN_PX - GIFT_COUNTER_SPRITE_WIDTH - 8;
+    const s16 giftBaseY = SCREEN_HEIGHT - GIFT_SIZE - HUD_MARGIN_PX;
+
+    giftCounterSpriteFirstRow = SPR_addSpriteSafe(&sprite_icono_regalo,
+        giftBaseX, giftBaseY - GIFT_COUNTER_ROW_OFFSET_Y,
         TILE_ATTR(PAL_EFFECT, FALSE, FALSE, FALSE));
-    if (giftCounterSprite) {
-        SPR_setAnim(giftCounterSprite, 0);
-        SPR_setFrame(giftCounterSprite, 0);
-        SPR_setDepth(giftCounterSprite, DEPTH_HUD);
-        SPR_setAutoAnimation(giftCounterSprite, FALSE);
-        SPR_setPosition(giftCounterSprite, HUD_MARGIN_PX, SCREEN_HEIGHT - 32 - HUD_MARGIN_PX);
+    if (giftCounterSpriteFirstRow) {
+        SPR_setAnim(giftCounterSpriteFirstRow, 0);
+        SPR_setFrame(giftCounterSpriteFirstRow, 0);
+        SPR_setDepth(giftCounterSpriteFirstRow, DEPTH_HUD + 1);
+        SPR_setAutoAnimation(giftCounterSpriteFirstRow, FALSE);
+        SPR_setPosition(giftCounterSpriteFirstRow, giftBaseX, giftBaseY);
     }
+
+    giftCounterSpriteSecondRow = SPR_addSpriteSafe(&sprite_icono_regalo,
+        giftBaseX + GIFT_COUNTER_SECOND_ROW_OFFSET_X, giftBaseY,
+        TILE_ATTR(PAL_EFFECT, FALSE, FALSE, FALSE));
+    if (giftCounterSpriteSecondRow) {
+        SPR_setAnim(giftCounterSpriteSecondRow, 0);
+        SPR_setFrame(giftCounterSpriteSecondRow, 0);
+        SPR_setDepth(giftCounterSpriteSecondRow, DEPTH_HUD);
+        SPR_setAutoAnimation(giftCounterSpriteSecondRow, FALSE);
+        SPR_setPosition(giftCounterSpriteSecondRow, giftBaseX + GIFT_COUNTER_SECOND_ROW_OFFSET_X, giftBaseY);
+    }
+
+    updateGiftCounter();
 
     for (u8 i = 0; i < NUM_TREES; i++) {
         trees[i].sprite = NULL;
@@ -1108,10 +1181,17 @@ void minigamePickup_update(void) {
     if (input & BUTTON_UP) inputDirY = -1;
     else if (input & BUTTON_DOWN) inputDirY = 1;
 
-    if (giftCounterSprite) {
-        SPR_setPosition(giftCounterSprite, HUD_MARGIN_PX, SCREEN_HEIGHT - 32 - HUD_MARGIN_PX);
-        SPR_setDepth(giftCounterSprite, DEPTH_HUD);
-        SPR_setVisibility(giftCounterSprite, VISIBLE);
+    const s16 giftBaseX = SCREEN_WIDTH - HUD_MARGIN_PX - GIFT_COUNTER_SPRITE_WIDTH - 8;
+    const s16 giftBaseY = SCREEN_HEIGHT - GIFT_SIZE - HUD_MARGIN_PX;
+    if (giftCounterSpriteFirstRow) {
+        SPR_setPosition(giftCounterSpriteFirstRow, giftBaseX, giftBaseY - GIFT_COUNTER_ROW_OFFSET_Y);
+        SPR_setDepth(giftCounterSpriteFirstRow, DEPTH_HUD + 1);
+        SPR_setVisibility(giftCounterSpriteFirstRow, VISIBLE);
+    }
+    if (giftCounterSpriteSecondRow) {
+        SPR_setPosition(giftCounterSpriteSecondRow, giftBaseX + GIFT_COUNTER_SECOND_ROW_OFFSET_X, giftBaseY);
+        SPR_setDepth(giftCounterSpriteSecondRow, DEPTH_HUD);
+        SPR_setVisibility(giftCounterSpriteSecondRow, VISIBLE);
     }
 
     if (santa.specialReady && (input & BUTTON_B)) {
