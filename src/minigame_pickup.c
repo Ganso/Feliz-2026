@@ -34,7 +34,10 @@ static void traceFunc(const char *funcName);
 #define ENEMY_ESCAPE_SPEED 3
 
 #define TREE_SIZE 64
-#define TREE_HITBOX_HEIGHT 10
+#define TREE_HITBOX_OFFSET_X 8     /* Margen izquierdo desde el origen del sprite */
+#define TREE_HITBOX_OFFSET_Y 52    /* Margen superior desde el origen del sprite */
+#define TREE_HITBOX_WIDTH 45       /* Ancho de la zona colisionable (53 - 8) */
+#define TREE_HITBOX_HEIGHT 6       /* Alto de la zona colisionable (58 - 52) */
 #define ENEMY_SIZE 32
 #define ENEMY_HITBOX_HEIGHT 10
 #define ELF_SIZE 32
@@ -52,7 +55,7 @@ static void traceFunc(const char *funcName);
 #define GIFT_COUNTER_ROW_OFFSET_Y 20
 #define GIFT_COUNTER_SECOND_ROW_OFFSET_X 10
 #define GIFT_COUNTER_MAX 10
-#define MUSIC_START_DELAY_FRAMES 60
+#define MUSIC_START_DELAY_FRAMES 40
 #define MUSIC_FM_VOLUME 70
 #define MUSIC_PSG_VOLUME 100
 #define SANTA_WIDTH 80
@@ -731,11 +734,11 @@ static void collectGift(void) {
         if (giftsCollected == 4 && activeEnemyCount == 1) {
         activeEnemyCount = 2;
         spawnEnemy(&enemies[1]);
-        kprintf("[DEBUG ENEMY] activeEnemyCount aumentó a 2 (regalo 3)");
-    } else if (giftsCollected == 8 && activeEnemyCount == 2) {
+        kprintf("[DEBUG ENEMY] activeEnemyCount aumentó a 2");
+    } else if (giftsCollected == 7 && activeEnemyCount == 2) {
         activeEnemyCount = 3;
         spawnEnemy(&enemies[2]);
-        kprintf("[DEBUG ENEMY] activeEnemyCount aumentó a 3 (regalo 6)");
+        kprintf("[DEBUG ENEMY] activeEnemyCount aumentó a 3");
     }
 
     kprintf("[DEBUG GIFT] collectGift giftsCollected=%u giftsCharge=%u", giftsCollected, giftsCharge);
@@ -813,7 +816,6 @@ static void beginTreeCollision(SimpleActor *tree) {
         updateGiftCounter();
     }
 
-    XGM2_pause();
     XGM2_playPCM(snd_obstaculo_golpe, sizeof(snd_obstaculo_golpe), SOUND_PCM_CH_AUTO);
     setTreeCollisionVisibility(TRUE);
 }
@@ -838,7 +840,6 @@ static void endTreeCollisionRecovery(void) {
         SPR_setVisibility(santa.sprite, VISIBLE);
     }
 
-    XGM2_resume();
     XGM2_playPCM(snd_santa_hohoho, sizeof(snd_santa_hohoho), SOUND_PCM_CH_AUTO);
 
     for (u8 i = 0; i < activeEnemyCount; i++) {
@@ -1274,11 +1275,11 @@ void minigamePickup_update(void) {
                 spawnTree(&trees[i]);
             }
         }
-        if (checkCollision(
-                santaHitX, santaHitY, santaHitW, santaHitH,
-                trees[i].x,
-                trees[i].y + (TREE_SIZE - TREE_HITBOX_HEIGHT),
-                TREE_SIZE, TREE_HITBOX_HEIGHT)) {
+        if (checkCollision(santaHitX, santaHitY, santaHitW, santaHitH,
+                        trees[i].x + TREE_HITBOX_OFFSET_X, 
+                        trees[i].y + TREE_HITBOX_OFFSET_Y, 
+                        TREE_HITBOX_WIDTH, 
+                        TREE_HITBOX_HEIGHT)) {
             beginTreeCollision(&trees[i]);
         }
         SPR_setPosition(trees[i].sprite, trees[i].x, trees[i].y);
