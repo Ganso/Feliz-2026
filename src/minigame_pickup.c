@@ -141,17 +141,20 @@ static u8 enemyStealActive;
 static u8 enemyStealIndex;
 static s16 enemyEscapeTargetX;
 static s16 enemyEscapeTargetY;
+static u8 activeEnemyCount;  // Número actual de enemigos activos (empieza en 1)
 
 /**
  * @brief Traza cambios de función para depuración ligera.
  * @param funcName Nombre de la función llamada.
  */
 static void traceFunc(const char *funcName) {
+    #if DEBUG_MODE
     if (funcName == NULL) return;
     if (lastTraceFunc != funcName) {
         lastTraceFunc = funcName;
         kprintf("[TRACE] %s", funcName);
     }
+    #endif
 }
 
 static u8 checkCollision(s16 x1, s16 y1, s16 w1, s16 h1, s16 x2, s16 y2, s16 w2, s16 h2);
@@ -629,7 +632,7 @@ static void updateElfMark(u8 index, s16 santaHitX, s16 santaHitY, s16 santaHitW,
     updateElfGift(index, progress);
 
     if (elfGiftActive[index] && elfGiftHasLanded[index]) {
-        if (checkCollision(santa.x, santa.y, SANTA_WIDTH, SANTA_HEIGHT, // Al recoger regalos, todo el sprite cuenta como hitbox para que sea más fácil
+        if (checkCollision(santa.x, santa.y - 10, SANTA_WIDTH, SANTA_HEIGHT + 16, // Al recoger regalos, todo el sprite cuenta como hitbox para que sea más fácil. Se añaden px arriba y abajo por si el regalo cae desde arriba o desde abajo
                 elfGiftPosX[index], elfGiftPosY[index], GIFT_SIZE, GIFT_SIZE)) {
             kprintf("[DEBUG GIFT] collect landed idx=%d giftPos=(%d,%d) santaHit=(%d,%d,%d,%d)", index,
                 elfGiftPosX[index], elfGiftPosY[index], santaHitX, santaHitY, santaHitW, santaHitH);
@@ -724,6 +727,17 @@ static void collectGift(void) {
         maxGiftsCollected = giftsCollected;
     }
     giftsCharge++;
+
+        if (giftsCollected == 4 && activeEnemyCount == 1) {
+        activeEnemyCount = 2;
+        spawnEnemy(&enemies[1]);
+        kprintf("[DEBUG ENEMY] activeEnemyCount aumentó a 2 (regalo 3)");
+    } else if (giftsCollected == 8 && activeEnemyCount == 2) {
+        activeEnemyCount = 3;
+        spawnEnemy(&enemies[2]);
+        kprintf("[DEBUG ENEMY] activeEnemyCount aumentó a 3 (regalo 6)");
+    }
+
     kprintf("[DEBUG GIFT] collectGift giftsCollected=%u giftsCharge=%u", giftsCollected, giftsCharge);
     resetSpecialIfReady();
     updateGiftCounter();
@@ -736,7 +750,7 @@ static void collectGift(void) {
 /** @brief Resetea y oculta todos los enemigos activos. */
 static void clearEnemies(void) {
     TRACE_FUNC();
-    for (u8 i = 0; i < NUM_ENEMIES; i++) {
+    for (u8 i = 0; i < activeEnemyCount; i++) {
         spawnEnemy(&enemies[i]);
     }
 }
@@ -827,7 +841,7 @@ static void endTreeCollisionRecovery(void) {
     XGM2_resume();
     XGM2_playPCM(snd_santa_hohoho, sizeof(snd_santa_hohoho), SOUND_PCM_CH_AUTO);
 
-    for (u8 i = 0; i < NUM_ENEMIES; i++) {
+    for (u8 i = 0; i < activeEnemyCount; i++) {
         spawnEnemy(&enemies[i]);
     }
     for (u8 i = 0; i < NUM_ELVES; i++) {
@@ -1158,9 +1172,14 @@ void minigamePickup_init(void) {
         elves[i].active = FALSE;
         kprintf("[ELF %d] Respawn inicial en %u frames", i, elfRespawnTimer[i]);
     }
+    activeEnemyCount = 1;  // Empieza con 1 enemigo
     for (u8 i = 0; i < NUM_ENEMIES; i++) {
         enemies[i].sprite = NULL;
-        spawnEnemy(&enemies[i]);
+        if (i < activeEnemyCount) {
+            spawnEnemy(&enemies[i]);  // Spawneamos solo los activos
+        } else {
+            enemies[i].active = FALSE;  // Los demás inactivos
+        }
     }
 }
 
@@ -1289,7 +1308,7 @@ void minigamePickup_update(void) {
         SPR_setPosition(elves[i].sprite, elves[i].x, elves[i].y);
     }
 
-    for (u8 i = 0; i < NUM_ENEMIES; i++) {
+    for (u8 i = 0; i < activeEnemyCount; i++) {
         if (!enemies[i].active) continue;
         enemies[i].y += scrollStep;
         if ((frameCounter % ENEMY_LATERAL_DELAY) == 0) {
